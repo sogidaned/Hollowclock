@@ -5,6 +5,10 @@ on:
     tags:
       - 'v*'  # Wird ausgelöst, wenn du einen Tag mit v setzt, z.B. v1.0.1
 
+# Wichtig: Berechtigungen explizit definieren
+permissions:
+  contents: write  # Benötigt für das Erstellen von Releases und Hochladen von Assets
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -37,36 +41,18 @@ jobs:
           pio run -t buildfs
           cp .pio/build/nodemcuv2/littlefs.bin web/
       
+      # Der modernere Ansatz für Releases
       - name: Create Release
         id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          name: Release ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
           draft: false
           prerelease: false
-      
-      - name: Upload Firmware Binary
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./web/firmware.bin
-          asset_name: firmware.bin
-          asset_content_type: application/octet-stream
-      
-      - name: Upload LittleFS Binary
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./web/littlefs.bin
-          asset_name: littlefs.bin
-          asset_content_type: application/octet-stream
+          files: |
+            web/firmware.bin
+            web/littlefs.bin
 
       - name: Update Version
         run: |
