@@ -58,6 +58,13 @@
       margin: 20px 0;
       border-radius: 4px;
     }
+    .post-install {
+      background-color: #e8f5e9;
+      padding: 15px;
+      border-left: 4px solid #4caf50;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
   </style>
   <script type="module" src="https://unpkg.com/esp-web-tools@9.0.4/dist/web/install-button.js?module"></script>
 </head>
@@ -82,9 +89,15 @@
     </div>
     
     <esp-web-install-button manifest="manifest.json"></esp-web-install-button>
+    
+    <div class="post-install">
+      <h3>After Installation:</h3>
+      <p>After installation, the clock will <strong>immediately</strong> create a WiFi access point named "Hollowclock-XXXXXX" with password "12345678".</p>
+      <p>Connect to this network, and a configuration portal will automatically open. If it doesn't open automatically, you can access it at <strong>http://192.168.4.1</strong></p>
+      <p>There you can select your WiFi network and the clock will connect to your home network.</p>
+      <p><strong>Tip:</strong> The improved firmware now starts the WiFi setup immediately after installation without any delay!</p>
+    </div>
   </div>
-  
-  <p>After installation, the clock creates a WiFi access point named "Hollowclock-XXXXXX" with the password "12345678". Connect to this network and follow the instructions for WiFi configuration.</p>
   
   <div class="footer">
     <p>Hollowclock - Open Source ESP8266 Clock Project</p>

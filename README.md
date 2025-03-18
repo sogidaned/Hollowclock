@@ -7,10 +7,12 @@ A standalone version of the Hollowclock that works without Home Assistant.
 ### Direct Installation (recommended)
 The easiest way to install the firmware:
 
-1. Visit [install.hollowclock.local](https://install.hollowclock.local)
+1. Visit [https://hollowclock.netlify.app](https://hollowclock.netlify.app) 
 2. Connect your Wemos D1 Mini to the USB port
 3. Click "Install" and follow the instructions
 4. After installation, the clock is ready to use
+
+*Note: This installer uses WebUSB and requires Chrome, Edge, or Opera browser. Firefox is not supported.*
 
 *For advanced users: Alternative installation methods are available using PlatformIO.*
 

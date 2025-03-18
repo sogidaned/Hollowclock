@@ -1,6 +1,55 @@
-# Hollowclock Web Installer
+# Hollowclock Installationsseite
 
-Dieses Verzeichnis enthält die Dateien für den ESP Web Tools-basierten Installer der Hollowclock Firmware.
+Diese Webseite ermöglicht die einfache Installation der Hollowclock-Firmware über den Browser.
+
+## Bereitstellung auf Netlify
+
+1. Erstelle ein Repository auf GitHub und lade alle Dateien hoch
+2. Melde dich bei [Netlify](https://www.netlify.com/) an (kostenlos)
+3. Klicke auf "Add new site" → "Import an existing project"
+4. Wähle dein GitHub-Repository aus
+5. Bei den Einstellungen:
+   - **Publish directory**: `web`
+   - Keine Build-Befehle erforderlich
+6. Klicke auf "Deploy site"
+7. Nach dem Deployment ist deine Installer-Webseite unter der Netlify-Domain verfügbar
+
+Die Installer-Seite kann dann unter `https://deine-domain.netlify.app` aufgerufen werden.
+
+## Anpassung der Domain (optional)
+
+1. Unter "Site settings" kannst du die automatisch generierte Netlify-Domain ändern
+2. Klicke auf "Change site name" und wähle einen benutzerfreundlicheren Namen
+3. Die Webseite ist dann unter `https://dein-name.netlify.app` erreichbar
+
+## Firmware-Updates
+
+Wenn du neue Versionen der Firmware oder des Dateisystems veröffentlichst:
+
+1. Erstelle neue `firmware.bin` und `littlefs.bin` Dateien
+2. Ersetze die alten Dateien im `web`-Verzeichnis
+3. Lade die Änderungen auf GitHub hoch
+4. Netlify wird automatisch ein neues Deployment erstellen
+
+## Dateien in diesem Verzeichnis
+
+- `install.html`: Die Hauptseite für die Installation
+- `manifest.json`: Konfigurationsdatei für ESP Web Tools
+- `firmware.bin`: Die aktuelle Firmware für den ESP8266
+- `littlefs.bin`: Das Dateisystem mit der Weboberfläche
+- `netlify.toml`: Konfigurationsdatei für Netlify
+- `_redirects`: Umleitungsregeln für Netlify
+
+## ESP Web Tools
+
+Diese Seite nutzt [ESP Web Tools](https://esphome.github.io/esp-web-tools/), eine Bibliothek, die das Flashen von ESP-Geräten direkt über den Browser ermöglicht.
+
+Unterstützte Browser:
+- Chrome
+- Edge
+- Opera
+
+Firefox unterstützt WebUSB derzeit nicht und kann daher nicht verwendet werden.
 
 ## Voraussetzungen
 
@@ -13,13 +62,6 @@ Um die Installer-Webseite zu nutzen, benötigen Sie:
    (Firefox unterstützt WebUSB derzeit nicht)
 
 2. Einen Wemos D1 Mini oder kompatiblen ESP8266-Mikrocontroller
-
-## Dateien in diesem Verzeichnis
-
-- `install.html` - Die Installer-Webseite
-- `manifest.json` - Manifestdatei für ESP Web Tools mit Informationen zur Firmware
-- `firmware.bin` - Die kompilierte Firmware (ersetzen Sie diese mit Ihrer eigenen)
-- `littlefs.bin` - Das Dateisystem-Image (ersetzen Sie dieses mit Ihrem eigenen)
 
 ## Anpassung für Ihr eigenes Projekt
 

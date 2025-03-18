@@ -278,8 +278,72 @@ void setupWiFi() {
   // LED-Pin für Status konfigurieren
   pinMode(LED_PIN, OUTPUT);
   
-  // Versuche zuerst mit gespeicherten Daten zu verbinden
-  Serial.println("Versuche mit gespeicherten Daten zu verbinden...");
+  // Prüfen, ob bereits WiFi-Credentials vorhanden sind
+  WiFiCredentials credentials;
+  EEPROM.get(WIFI_CREDENTIALS_ADDR, credentials);
+  
+  // Beim ersten Start (nach Flashen) direkt in den AP-Modus wechseln
+  if (!credentials.valid || strlen(credentials.ssid) < 1) {
+    Serial.println("Keine gespeicherten WLAN-Daten gefunden - starte direkt im Konfigurationsmodus");
+    
+    // WiFi Modus explizit setzen
+    WiFi.mode(WIFI_STA);
+    
+    // WiFiManager konfigurieren
+    wifiManager.setDebugOutput(true);
+    wifiManager.setAPCallback(configModeCallback);
+    wifiManager.setConfigPortalTimeout(CONFIG_PORTAL_TIMEOUT);
+    wifiManager.setConnectTimeout(WIFI_CONNECT_TIMEOUT);
+    wifiManager.setBreakAfterConfig(true);
+    wifiManager.setSaveConfigCallback([]() {
+      Serial.println("WLAN-Konfiguration gespeichert");
+      WiFi.setAutoReconnect(true);
+      
+      // Speichere Verbindungsdaten
+      saveNetworkInfo();
+    });
+    
+    // Optionale Parameter für das Portal
+    WiFiManagerParameter custom_text("<p>Willkommen bei Ihrer HollowClock!</p><p>Nach erfolgreicher Verbindung ist die Uhr unter <strong>http://hollowclock.local</strong> im Browser erreichbar.</p>");
+    wifiManager.addParameter(&custom_text);
+    
+    // Generiere eindeutigen AP-Namen
+    String apName = String(AP_NAME) + "-" + String(ESP.getChipId(), HEX);
+    
+    // Starte sofort das Konfigurationsportal ohne Verbindungsversuch
+    Serial.println("Starte Konfigurationsportal...");
+    if (!wifiManager.startConfigPortal(apName.c_str(), AP_PASSWORD)) {
+      Serial.println("Konfigurationsportal-Timeout, starte neu...");
+      delay(3000);
+      ESP.restart();
+    }
+    
+    // Nach erfolgreicher Verbindung
+    isInConfigMode = false;
+    Serial.println("WiFi verbunden!");
+    Serial.printf("IP-Adresse: %s\n", WiFi.localIP().toString().c_str());
+    Serial.printf("Signalstärke: %d dBm\n", WiFi.RSSI());
+    
+    // Speichere sofort die Netzwerkinformationen
+    saveNetworkInfo();
+    
+    // LED einmal lang blinken lassen zur Bestätigung
+    digitalWrite(LED_PIN, LOW);
+    delay(1000);
+    digitalWrite(LED_PIN, HIGH);
+    
+    // mDNS initialisieren
+    if (MDNS.begin("hollowclock")) {
+      Serial.println("mDNS gestartet: http://hollowclock.local");
+    } else {
+      Serial.println("Fehler beim Starten von mDNS!");
+    }
+    
+    return;
+  }
+  
+  // Wenn WLAN-Daten vorhanden sind, versuche mit gespeicherten Daten zu verbinden
+  Serial.println("Gespeicherte WLAN-Daten gefunden - versuche zu verbinden...");
   if (connectToSavedNetwork()) {
     Serial.println("Verbindung mit gespeicherten Daten erfolgreich!");
     isInConfigMode = false;
@@ -304,7 +368,7 @@ void setupWiFi() {
     return; // Verlasse die Funktion, da WLAN bereits verbunden ist
   }
   
-  // Wenn keine gespeicherten Daten oder Verbindung fehlgeschlagen, nutze WiFiManager
+  // Wenn Verbindung mit gespeicherten Daten fehlschlägt, nutze WiFiManager
   Serial.println("Konnte nicht mit gespeicherten Daten verbinden, starte WiFiManager...");
   
   // WiFi Modus explizit setzen
