@@ -31,17 +31,37 @@ jobs:
           python -m pip install --upgrade pip
           pip install platformio
       
+      - name: Update Version in Build Files
+        run: |
+          # Hole Version ohne 'v' Prefix
+          VERSION="${{ github.ref_name }}"
+          VERSION_NUM="${VERSION#v}"
+          echo "Aktualisiere Versionen auf $VERSION_NUM"
+          
+          # Aktualisiere Version in main.cpp für Build
+          sed -i 's/#define FW_VERSION ".*"/#define FW_VERSION "'$VERSION_NUM'"/' src/main.cpp
+          cat src/main.cpp | grep FW_VERSION
+          
+          # Aktualisiere Version in manifest.json
+          sed -i 's/"version": ".*"/"version": "'$VERSION_NUM'"/' web/manifest.json
+          cat web/manifest.json | grep version
+      
       - name: Build Firmware
         run: |
           platformio run -e nodemcuv2
       
-      - name: Copy firmware files to web folder
+      - name: Build File System
+        run: |
+          platformio run --target buildfs
+      
+      - name: Copy Binaries to Web Folder
         run: |
           cp .pio/build/nodemcuv2/firmware.bin web/
-          pio run -t buildfs
           cp .pio/build/nodemcuv2/littlefs.bin web/
+          
+          # Überprüfen der Dateien
+          ls -la web/*.bin
       
-      # Der modernere Ansatz für Releases
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1
@@ -53,12 +73,14 @@ jobs:
           files: |
             web/firmware.bin
             web/littlefs.bin
-
-      - name: Update Version
-        run: |
-          python .github/scripts/update_version.py ${{ github.ref_name }}
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          git add src/main.cpp web/manifest.json
-          git commit -m "Update version to ${{ github.ref_name }}"
-          git push
+          body: |
+            # Hollowclock Firmware ${{ github.ref_name }}
+            
+            ## Installation
+            
+            ### Über ESP Web Tools (empfohlen)
+            Besuche [https://hollowclock.netlify.app](https://hollowclock.netlify.app) und folge den Anweisungen.
+            
+            ### Manuell
+            - Firmware: web/firmware.bin
+            - Dateisystem: web/littlefs.bin
