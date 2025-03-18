@@ -1,0 +1,25 @@
+Diese Datei ist ein Platzhalter für die eigentliche Firmware-Datei (firmware.bin).
+
+Um die tatsächliche Firmware für den ESP8266 zu erstellen:
+
+1. Stellen Sie sicher, dass PlatformIO installiert ist:
+   - Installieren Sie VS Code und die PlatformIO-Erweiterung
+   - Oder installieren Sie die PlatformIO CLI: https://docs.platformio.org/en/latest/core/installation.html
+
+2. Kompilieren Sie die Firmware mit:
+   ```
+   platformio run
+   ```
+
+3. Kopieren Sie die erzeugte Firmware-Datei an diesen Ort:
+   - Quelle: .pio/build/nodemcuv2/firmware.bin
+   - Ziel: web/firmware.bin
+
+4. Erstellen Sie ein Littlefs-Image mit:
+   ```
+   platformio run --target buildfs
+   ```
+
+5. Kopieren Sie das erzeugte Filesystem-Image an diesen Ort:
+   - Quelle: .pio/build/nodemcuv2/littlefs.bin
+   - Ziel: web/littlefs.bin 

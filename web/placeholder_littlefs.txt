@@ -1,0 +1,23 @@
+Diese Datei ist ein Platzhalter für das tatsächliche Littlefs-Image (littlefs.bin).
+
+Das Littlefs-Image enthält alle Dateien aus dem "data"-Verzeichnis, die auf den ESP8266 hochgeladen werden sollen, wie:
+- HTML-, CSS- und JavaScript-Dateien für die Weboberfläche
+- Konfigurationsdateien
+- Andere statische Ressourcen
+
+Um das tatsächliche Littlefs-Image zu erstellen:
+
+1. Stellen Sie sicher, dass PlatformIO installiert ist:
+   - Installieren Sie VS Code und die PlatformIO-Erweiterung
+   - Oder installieren Sie die PlatformIO CLI: https://docs.platformio.org/en/latest/core/installation.html
+
+2. Erstellen Sie ein Littlefs-Image mit:
+   ```
+   platformio run --target buildfs
+   ```
+
+3. Kopieren Sie das erzeugte Filesystem-Image an diesen Ort:
+   - Quelle: .pio/build/nodemcuv2/littlefs.bin
+   - Ziel: web/littlefs.bin
+
+Hinweis: Die Größe des Littlefs-Bereichs wird in der platformio.ini durch den Parameter "board_build.ldscript = eagle.flash.4m2m.ld" definiert, wobei "4m2m" bedeutet: 4MB Flash-Größe insgesamt, davon 2MB für das Dateisystem. 

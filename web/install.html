@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hollowclock Installer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.5;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    h1 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .container {
+      margin-top: 40px;
+      background-color: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    esp-web-install-button {
+      margin: 20px auto;
+      display: block;
+    }
+    .instructions {
+      border-left: 4px solid #0071bc;
+      padding-left: 20px;
+      margin: 20px 0;
+      background-color: #f8f9fa;
+      padding: 15px 15px 15px 20px;
+      border-radius: 4px;
+    }
+    .instructions h3 {
+      margin-top: 0;
+      color: #0071bc;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 0.9em;
+      color: #666;
+    }
+    ol li {
+      margin-bottom: 10px;
+    }
+    .note {
+      background-color: #fffde7;
+      padding: 10px 15px;
+      border-left: 4px solid #ffd600;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+  </style>
+  <script type="module" src="https://unpkg.com/esp-web-tools@9.0.4/dist/web/install-button.js?module"></script>
+</head>
+<body>
+  <h1>Hollowclock Firmware Installer</h1>
+  
+  <div class="container">
+    <p>With this tool you can load the firmware directly onto your Wemos D1 Mini without installing PlatformIO or the Arduino IDE.</p>
+    
+    <div class="instructions">
+      <h3>Instructions:</h3>
+      <ol>
+        <li>Connect your Wemos D1 Mini to your computer's USB port</li>
+        <li>Click the "Install" button below</li>
+        <li>Follow the instructions in the dialog</li>
+        <li>After successful installation, the clock is ready to use</li>
+      </ol>
+    </div>
+    
+    <div class="note">
+      <strong>Note:</strong> This installer requires a modern browser that supports WebUSB (Chrome, Edge, or Opera). Firefox does not support WebUSB at this time.
+    </div>
+    
+    <esp-web-install-button manifest="manifest.json"></esp-web-install-button>
+  </div>
+  
+  <p>After installation, the clock creates a WiFi access point named "Hollowclock-XXXXXX" with the password "12345678". Connect to this network and follow the instructions for WiFi configuration.</p>
+  
+  <div class="footer">
+    <p>Hollowclock - Open Source ESP8266 Clock Project</p>
+    <p><a href="https://github.com/sogidaned/hollowclock" target="_blank">View on GitHub</a></p>
+  </div>
+</body>
+</html> 

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hollowclock</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕓</text></svg>">
+</head>
+<body class="dark-mode">
+    <div class="container">
+        <div class="header">
+            <h1 data-i18n="title">Hollowclock</h1>
+            <p class="subtitle" data-i18n="subtitle">Smart-Steuerung für Hollow Clock 2</p>
+            
+            <!-- Sprachumschalter -->
+            <div class="language-switcher">
+                <label for="language-switch" data-i18n="language">Sprache:</label>
+                <select id="language-switch">
+                    <option value="en">English</option>
+                    <option value="de">Deutsch</option>
+                    <option value="by">Boarisch</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="content-columns">
+            <!-- Linke Spalte - primäre Funktionen -->
+            <div class="column main-column">
+                <!-- Uhrzeit Section -->
+                <div class="section">
+                    <h2 class="section-title" data-i18n="current_time">Aktuelle Uhrzeit</h2>
+                    <div class="status-line">
+                        <span class="status-label" data-i18n="current_position">Aktuelle Position:</span>
+                        <span id="current-position" class="status-value">Wird geladen...</span>
+                    </div>
+                    <div class="status-line">
+                        <span class="status-label" data-i18n="ntp_time">NTP-Serverzeit:</span>
+                        <span id="ntp-time" class="status-value">Wird geladen...</span>
+                    </div>
+                    <div class="status-line">
+                        <span class="status-label" data-i18n="motor_position">Motorposition:</span>
+                        <span id="step-position" class="status-value">Wird geladen...</span>
+                    </div>
+                </div>
+                
+                <!-- Position kalibrieren -->
+                <div class="section">
+                    <h2 class="section-title" data-i18n="calibrate">Position kalibrieren</h2>
+                    <p data-i18n="calibrate_desc">Stellen Sie die aktuelle Zeit der Uhr hier ein:</p>
+                    <p class="info-note"><strong>Hinweis:</strong> <span data-i18n="calibrate_note">Bei einem 12-Uhr-Übergang während der Kalibrierung wird die Weboberfläche kurzfristig pausiert, um eine Fehlkalibrierung zu verhindern. Bitte warten Sie, bis der Vorgang abgeschlossen ist.</span></p>
+                    <div class="time-picker">
+                        <div class="time-wheel-container">
+                            <div class="time-wheel-overlay time-wheel-top"></div>
+                            <div class="time-wheel-overlay time-wheel-center"></div>
+                            <div class="time-wheel-overlay time-wheel-bottom"></div>
+                            <div id="hour-wheel" class="time-wheel"></div>
+                        </div>
+                        <div class="time-separator">:</div>
+                        <div class="time-wheel-container">
+                            <div class="time-wheel-overlay time-wheel-top"></div>
+                            <div class="time-wheel-overlay time-wheel-center"></div>
+                            <div class="time-wheel-overlay time-wheel-bottom"></div>
+                            <div id="minute-wheel" class="time-wheel"></div>
+                        </div>
+                    </div>
+                    <button id="set-time-btn" class="button button-primary" data-i18n="save_position">Position speichern</button>
+                </div>
+                
+                <!-- Feinjustierung -->
+                <div class="section">
+                    <h2 class="section-title" data-i18n="fine_adjustment">Feinjustierung</h2>
+                    <p data-i18n="fine_adjustment_desc">Passen Sie die Position der Uhrzeiger mit diesen Schaltflächen an:</p>
+                    <div class="button-group">
+                        <button id="adjust-minus-30-btn" class="button button-primary" data-i18n="minus_30">- 30 Sekunden</button>
+                        <button id="adjust-plus-30-btn" class="button button-primary" data-i18n="plus_30">+ 30 Sekunden</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Rechte Spalte - Einstellungen -->
+            <div class="column settings-column">
+                <!-- System-Einstellungen -->
+                <div class="section">
+                    <h2 class="section-title" data-i18n="system_info">System-Informationen</h2>
+                    <div class="system-info">
+                        <div class="info-card">
+                            <div class="info-label" data-i18n="version">VERSION:</div>
+                            <div class="info-value" id="version">1.0.0</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-label" data-i18n="ip_address">IP-ADRESSE:</div>
+                            <div class="info-value" id="ip-address">Wird geladen...</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-label" data-i18n="wifi_signal">WLAN-SIGNAL:</div>
+                            <div class="info-value" id="wifi-signal">Wird geladen...</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-label" data-i18n="uptime">LAUFZEIT:</div>
+                            <div class="info-value" id="uptime">Wird geladen...</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Systemfunktionen -->
+                <div class="section">
+                    <h2 class="section-title" data-i18n="system_functions">System-Funktionen</h2>
+                    <div class="button-groups">
+                        <div class="button-group primary-actions">
+                            <button id="update-btn" class="button button-success" data-i18n="firmware_update">
+                                <i class="icon-update"></i>Firmware-Update
+                            </button>
+                            <button id="restart-btn" class="button button-warning" data-i18n="restart">
+                                <i class="icon-restart"></i>Neustart
+                            </button>
+                        </div>
+                        <div class="button-group secondary-actions">
+                            <button id="reset-wifi-btn" class="button button-danger" data-i18n="reset_wifi">
+                                <i class="icon-wifi"></i>WLAN zurücksetzen
+                            </button>
+                            <button id="reset-all-btn" class="button button-danger" data-i18n="reset_all">
+                                <i class="icon-reset"></i>Alle Einstellungen zurücksetzen
+                            </button>
+                        </div>
+                    </div>
+                </div>
+    
+                <!-- MQTT-Konfiguration -->
+                <div class="section">
+                    <h2 class="section-title" data-i18n="mqtt_config">MQTT-Konfiguration</h2>
+                    <p class="info-note"><strong>Info:</strong> <span data-i18n="mqtt_info">Verbinden Sie Ihre Uhr mit einer MQTT-Instanz, um sie über Home Assistant zu steuern.</span></p>
+                    
+                    <!-- MQTT-Aktivierungsschalter -->
+                    <div class="form-group mqtt-switch-container">
+                        <label for="mqtt-enabled" data-i18n="mqtt_enabled">MQTT aktivieren:</label>
+                        <label class="switch">
+                            <input type="checkbox" id="mqtt-enabled">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="mqtt-config" id="mqtt-fields">
+                        <div class="form-group">
+                            <label for="mqtt-broker" data-i18n="mqtt_broker">MQTT Broker:</label>
+                            <input type="text" id="mqtt-broker" placeholder="homeassistant.local">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="mqtt-port" data-i18n="port">Port:</label>
+                                <input type="number" id="mqtt-port" value="1883" min="1" max="65535">
+                            </div>
+                            <div class="form-group">
+                                <label for="mqtt-client-id" data-i18n="client_id">Client-ID:</label>
+                                <input type="text" id="mqtt-client-id" placeholder="ESP32test">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="mqtt-topic" data-i18n="topic">Topic:</label>
+                            <input type="text" id="mqtt-topic" placeholder="ESP32test">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="mqtt-username" data-i18n="username">Benutzername:</label>
+                                <input type="text" id="mqtt-username" placeholder="">
+                            </div>
+                            <div class="form-group">
+                                <label for="mqtt-password" data-i18n="password">Passwort:</label>
+                                <input type="password" id="mqtt-password" placeholder="">
+                            </div>
+                        </div>
+                        <div class="button-row">
+                            <button id="save-mqtt-btn" class="button button-primary" data-i18n="save_mqtt">MQTT-Einstellungen speichern</button>
+                            <button id="reset-mqtt-btn" class="button button-warning" data-i18n="reset_mqtt">MQTT zurücksetzen</button>
+                        </div>
+                        <div id="mqtt-status" class="status-indicator"></div>
+                        <div id="mqtt-error" class="error-message"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><span data-i18n="footer">Hollowclock v1.0 - </span><a href="http://hollowclock.local">hollowclock.local</a></p>
+        </div>
+    </div>
+
+    <!-- JavaScript Module -->
+    <script type="module" src="/translations.js"></script>
+    <script type="module" src="/language.js"></script>
+    <script type="module" src="/api.js"></script>
+    <script type="module" src="/status.js"></script>
+    <script type="module" src="/ui.js"></script>
+    <script type="module" src="/app.js"></script>
+</body>
+</html> 
