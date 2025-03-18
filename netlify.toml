@@ -1,0 +1,38 @@
+[build]
+  publish = "web"
+  
+[build.processing]
+  skip_processing = false
+
+[build.processing.html]
+  pretty_urls = false
+
+[build.processing.css]
+  bundle = false
+  minify = false
+
+[build.processing.js]
+  bundle = false
+  minify = false
+
+[build.processing.images]
+  compress = false
+
+[[headers]]
+  for = "/*"
+    [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Content-Security-Policy = "frame-ancestors 'self'; default-src 'self' 'unsafe-inline' 'unsafe-eval' *.unpkg.com unpkg.com; connect-src 'self' unpkg.com *.unpkg.com"
+
+# Stelle sicher, dass die Binärdateien korrekt bereitgestellt werden
+[[headers]]
+  for = "/*.bin"
+    [headers.values]
+    Content-Type = "application/octet-stream"
+    Content-Disposition = "attachment"
+
+# Stelle sicher, dass JSON-Dateien korrekt bereitgestellt werden
+[[headers]]
+  for = "/*.json"
+    [headers.values]
+    Content-Type = "application/json" 
