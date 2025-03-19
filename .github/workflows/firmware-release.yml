@@ -38,9 +38,9 @@ jobs:
           VERSION_NUM="${VERSION#v}"
           echo "Aktualisiere Versionen auf $VERSION_NUM"
           
-          # Aktualisiere Version in main.cpp für Build
-          sed -i 's/#define FW_VERSION ".*"/#define FW_VERSION "'$VERSION_NUM'"/' src/main.cpp
-          cat src/main.cpp | grep FW_VERSION
+          # Aktualisiere Version in config.h für Build
+          sed -i 's/#define FW_VERSION ".*"/#define FW_VERSION "'$VERSION_NUM'"/' src/config.h
+          cat src/config.h | grep FW_VERSION
           
           # Aktualisiere Version in manifest.json
           sed -i 's/"version": ".*"/"version": "'$VERSION_NUM'"/' web/manifest.json

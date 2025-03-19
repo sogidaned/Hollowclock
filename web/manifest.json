@@ -1,6 +1,6 @@
 {
   "name": "Hollowclock",
-  "version": "",
+  "version": "1.0.6",
   "new_install_prompt_erase": false,
   "builds": [
     {

@@ -1,7 +1,7 @@
 #pragma once
 
 // Version
-#define FW_VERSION "1.0.5"  // Semantic Versioning: Major.Minor.Patch
+#define FW_VERSION "1.0.6"  // Semantic Versioning: Major.Minor.Patch
 
 // GitHub Update Konfiguration
 #define GITHUB_REPO_OWNER "sogidaned"
