@@ -251,22 +251,45 @@ const API = {
     // Update starten
     async startUpdate(type, url) {
         console.log(`Starte ${type} Update mit URL: ${url}`);
+        console.log(`Update-Zeitstempel: ${new Date().toISOString()}`);
+        
         try {
+            // Timeout für die Anfrage erhöhen (30 Sekunden)
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
+            
+            const startTime = performance.now();
+            console.log(`Start Update-Anfrage: ${startTime}ms`);
+            
             const response = await fetch('/api/start-update', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Cache-Control': 'no-cache'
                 },
-                body: `type=${encodeURIComponent(type)}&url=${encodeURIComponent(url)}`
+                body: `type=${encodeURIComponent(type)}&url=${encodeURIComponent(url)}`,
+                signal: controller.signal
             });
             
+            const endTime = performance.now();
+            console.log(`Ende Update-Anfrage: ${endTime}ms, Dauer: ${endTime - startTime}ms`);
+            
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                console.error(`HTTP error! status: ${response.status}`);
+                if (response.status === 500) {
+                    console.error("Server-Fehler: Möglicherweise Timeout oder Verbindungsproblem");
+                }
+                
+                const errorText = await response.text();
+                throw new Error(`HTTP error! status: ${response.status}, Details: ${errorText}`);
             }
             
             return await response.json();
         } catch (error) {
             console.error(`Fehler beim ${type}-Update:`, error);
+            if (error.name === 'AbortError') {
+                throw new Error("Update-Anfrage hat das Zeitlimit überschritten (30 Sekunden)");
+            }
             throw error;
         }
     }

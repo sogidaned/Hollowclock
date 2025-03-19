@@ -46,6 +46,12 @@ Connect the ULN2003 stepper motor driver as follows:
    - Manage MQTT configuration (optional)
    - Perform firmware updates
 
+## Firmware Updates
+
+Currently, only manual updates via the firmware page are working correctly.
+
+
+
 ## MQTT Integration (Optional)
 
 The clock supports optional MQTT integration with Home Assistant:

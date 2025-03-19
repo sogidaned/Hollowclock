@@ -792,7 +792,7 @@ void WebInterface::fetchGitHubRelease(JsonDocument& response) {
                                 
                                 if (strstr(name, "firmware.bin")) {
                                     response["firmwareUrl"] = url;
-                                } else if (strstr(name, "filesystem.bin")) {
+                                } else if (strstr(name, "filesystem.bin") || strstr(name, "littlefs.bin")) {
                                     response["filesystemUrl"] = url;
                                 }
                             }
@@ -939,6 +939,8 @@ void WebInterface::directFetchGitHubRelease(JsonDocument& response) {
                         String tagName = latestTag;
                         String firmwareUrl = "https://github.com/" + repoOwner + "/" + repoName + 
                                     "/releases/download/" + tagName + "/firmware.bin";
+                        
+                        // Versuche zuerst littlefs.bin, dann filesystem.bin als Fallback
                         String filesystemUrl = "https://github.com/" + repoOwner + "/" + repoName + 
                                     "/releases/download/" + tagName + "/littlefs.bin";
                         
@@ -988,6 +990,7 @@ void WebInterface::handleStartUpdate() {
     
     WiFiClientSecure client;
     client.setInsecure();
+    client.setTimeout(30000);  // Timeout auf 30 Sekunden erhöht
     
     if (type == "firmware") {
         int ret = ESPhttpUpdate.update(client, url);
@@ -1006,8 +1009,21 @@ void WebInterface::handleUpdateResult(int result) {
             Serial.printf("HTTP_UPDATE_FAILED Error (%d): %s\n", 
                 ESPhttpUpdate.getLastError(),
                 ESPhttpUpdate.getLastErrorString().c_str());
+                
+            // Detailliertere Fehlerinformationen zum Debugging
+            if (ESPhttpUpdate.getLastError() == -1) {
+                Serial.println("Möglicherweise Verbindungs- oder Timeout-Problem");
+            } else if (ESPhttpUpdate.getLastError() == -2) {
+                Serial.println("Möglicherweise Problem mit Server-Antwort oder ungültige Datei");
+            } else if (ESPhttpUpdate.getLastError() == -3) {
+                Serial.println("Nicht genügend Speicher für das Update");
+            } else if (ESPhttpUpdate.getLastError() == -4) {
+                Serial.println("Ungültiger Parameter");
+            }
+            
             server.send(500, "application/json", 
-                "{\"error\":\"Update failed: " + ESPhttpUpdate.getLastErrorString() + "\"}");
+                "{\"error\":\"Update failed: " + ESPhttpUpdate.getLastErrorString() + 
+                "\", \"errorCode\":" + String(ESPhttpUpdate.getLastError()) + "}");
             break;
             
         case HTTP_UPDATE_NO_UPDATES:

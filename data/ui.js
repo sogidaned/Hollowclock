@@ -438,33 +438,95 @@ class UI {
 
     // Firmware Update starten
     async startFirmwareUpdate(url) {
+        const statusElement = document.getElementById('update-status');
+        if (statusElement) {
+            statusElement.innerHTML = `
+                <div class="update-status-message">
+                    <p>${LanguageManager.translate('updating_firmware', 'Firmware wird aktualisiert...')}</p>
+                    <div class="loading-spinner"></div>
+                </div>
+            `;
+        }
+        
         try {
             const response = await API.startUpdate('firmware', url);
             if (response.status === 'ok') {
-                alert(LanguageManager.translate('update_success'));
-                location.reload();
+                if (statusElement) {
+                    statusElement.innerHTML = `
+                        <div class="update-status-message">
+                            <p>✅ ${LanguageManager.translate('update_success', 'Update erfolgreich!')}</p>
+                            <p>${LanguageManager.translate('restarting_device', 'Gerät startet neu...')}</p>
+                        </div>
+                    `;
+                }
+                
+                // Verzögerter Reload, um Statusmeldung anzuzeigen
+                setTimeout(() => {
+                    location.reload();
+                }, 5000);
             } else {
                 throw new Error(response.error || 'Unbekannter Fehler');
             }
         } catch (error) {
             console.error('Firmware Update Fehler:', error);
-            alert(LanguageManager.translate('update_error') + ': ' + error.message);
+            
+            if (statusElement) {
+                statusElement.innerHTML = `
+                    <div class="update-status-message error">
+                        <p>❌ ${LanguageManager.translate('update_error', 'Fehler beim Update')}: ${error.message}</p>
+                        <button class="btn" onclick="window.location.reload()">${LanguageManager.translate('retry_update', 'Erneut versuchen')}</button>
+                    </div>
+                `;
+            } else {
+                alert(LanguageManager.translate('update_error') + ': ' + error.message);
+            }
         }
     }
 
     // Filesystem Update starten
     async startFilesystemUpdate(url) {
+        const statusElement = document.getElementById('update-status');
+        if (statusElement) {
+            statusElement.innerHTML = `
+                <div class="update-status-message">
+                    <p>${LanguageManager.translate('updating_filesystem', 'Dateisystem wird aktualisiert...')}</p>
+                    <div class="loading-spinner"></div>
+                </div>
+            `;
+        }
+        
         try {
             const response = await API.startUpdate('filesystem', url);
             if (response.status === 'ok') {
-                alert(LanguageManager.translate('update_success'));
-                location.reload();
+                if (statusElement) {
+                    statusElement.innerHTML = `
+                        <div class="update-status-message">
+                            <p>✅ ${LanguageManager.translate('update_success', 'Update erfolgreich!')}</p>
+                            <p>${LanguageManager.translate('restarting_device', 'Gerät startet neu...')}</p>
+                        </div>
+                    `;
+                }
+                
+                // Verzögerter Reload, um Statusmeldung anzuzeigen
+                setTimeout(() => {
+                    location.reload();
+                }, 5000);
             } else {
                 throw new Error(response.error || 'Unbekannter Fehler');
             }
         } catch (error) {
             console.error('Filesystem Update Fehler:', error);
-            alert(LanguageManager.translate('update_error') + ': ' + error.message);
+            
+            if (statusElement) {
+                statusElement.innerHTML = `
+                    <div class="update-status-message error">
+                        <p>❌ ${LanguageManager.translate('update_error', 'Fehler beim Update')}: ${error.message}</p>
+                        <button class="btn" onclick="window.location.reload()">${LanguageManager.translate('retry_update', 'Erneut versuchen')}</button>
+                    </div>
+                `;
+            } else {
+                alert(LanguageManager.translate('update_error') + ': ' + error.message);
+            }
         }
     }
 
