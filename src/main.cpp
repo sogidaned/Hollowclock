@@ -14,9 +14,6 @@
 #include "homeassistant.h"
 #include <LittleFS.h>
 
-// Version
-#define FW_VERSION "1.0.0"  // Semantic Versioning: Major.Minor.Patch
-
 // Funktionsdeklarationen
 void updateClockPosition();
 void configModeCallback(WiFiManager *myWiFiManager);

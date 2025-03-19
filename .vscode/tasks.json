@@ -1,0 +1,17 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Release Firmware",
+        "type": "shell",
+        "command": "${command:workbench.action.terminal.new}",
+        "args": [
+          "${command:workbench.action.terminal.sendSequence}",
+          {
+            "text": "# Extrahiere die Version aus main.cpp\nVERSION=$(grep -o '\"[0-9]\\+\\.[0-9]\\+\\.[0-9]\\+\"' src/main.cpp | tr -d '\"')\n\n# Bestätige und zeige die Version\necho \"Erstelle Release für Version $VERSION\"\n\n# Committe Änderungen\ngit add .\ngit commit -m \"Release v$VERSION\"\ngit push origin main\n\n# Erstelle und pushe Tag\ngit tag v$VERSION\ngit push origin v$VERSION\n\necho \"Tag v$VERSION wurde erstellt und gepusht. GitHub Actions wird nun das Release erstellen.\"\n"
+          }
+        ],
+        "problemMatcher": []
+      }
+    ]
+  }

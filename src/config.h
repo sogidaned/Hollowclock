@@ -1,7 +1,21 @@
 #pragma once
 
 // Version
-#define FW_VERSION "1.0.0"  // Semantic Versioning: Major.Minor.Patch
+#define FW_VERSION "1.0.5"  // Semantic Versioning: Major.Minor.Patch
+
+// GitHub Update Konfiguration
+#define GITHUB_REPO_OWNER "sogidaned"
+#define GITHUB_REPO_NAME "Hollowclock"
+#define GITHUB_USER_AGENT "ESP8266-HollowclockUpdater/1.0"
+
+// GitHub API-Einstellungen
+// Wähle HTTPS (Standard) oder HTTP
+#define USE_GITHUB_HTTPS false  // Auf false gesetzt, um HTTP zu verwenden
+// Wenn HTTP verwendet wird, kann ein öffentlicher API-Proxy verwendet werden
+#define GITHUB_API_PROXY "api.allorigins.win/raw?url=https://"
+
+// Uncomment und füge dein Token ein, falls das Rate-Limit überschritten wird
+// #define GITHUB_TOKEN "ghp_yourPersonalAccessToken"
 
 // Konstanten für die Uhr
 const int TOTAL_STEPS = 491520;  // 12 Stunden in Schritten (Half-Step Modus)

@@ -32,6 +32,9 @@ Connect the ULN2003 stepper motor driver as follows:
 - IN3 -> D6
 - IN4 -> D5
 
+![Wiring Diagram for Hollowclock](https://raw.githubusercontent.com/sogidaned/Hollowclock/main/docs/wiring_diagram.png)
+*Verkabelungsdiagramm: Wemos D1 Mini mit ULN2003 Treiber und 28BYJ-48 Schrittmotor*
+
 ## Usage
 
 1. After startup, the clock automatically connects to your WiFi
@@ -110,30 +113,6 @@ mode: single
 ```
 
 This automation will send the time from the input_datetime helper to the clock 5 seconds after any change.
-
-## Firmware Update
-
-You can update the firmware via the web interface:
-
-1. Open the clock's web interface
-2. Click on "Firmware Update"
-3. Select the new .bin file
-4. Click "Update"
-5. Wait for the update to complete
-
-### Important: After Major Updates
-
-**After major updates, you should also update the web interface files (file system):**
-
-1. Download the latest `littlefs.bin` file from the [GitHub Releases page](https://github.com/sogidaned/hollowclock/releases)
-2. On the Firmware Update page, select "File System" instead of "Firmware"
-3. Select the downloaded `littlefs.bin` file
-4. Click "Update" and wait for completion
-5. After the file system update, the clock will restart
-
-### Auto-Update Feature (coming soon)
-
-In a future update, a new button will be added to the web interface that allows you to check for and download the latest firmware and file system directly from GitHub, making the update process even simpler.
 
 ## Reset WiFi Settings
 

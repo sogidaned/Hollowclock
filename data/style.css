@@ -752,4 +752,277 @@ input:checked + .slider:before {
 
 .button:active {
     background: #3730a3;
+}
+
+/* Update-Status */
+.update-status {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px;
+    background: #4CAF50;
+    color: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 1000;
+    animation: slideIn 0.3s ease-out;
+}
+
+.update-status.error {
+    background: #f44336;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Update-Menü */
+.update-menu {
+    background: #1f2937;
+    color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+    padding: 20px;
+    width: 90%;
+    max-width: 400px;
+    animation: fadeIn 0.3s ease-out;
+    position: relative;
+}
+
+.update-menu .close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #374151;
+    border: 1px solid #4B5563;
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.update-menu .close-button:hover {
+    background: #4B5563;
+    transform: scale(1.1);
+    border-color: #6B7280;
+}
+
+.update-menu .close-button:active {
+    transform: scale(0.95);
+}
+
+.update-menu h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+    border-bottom: 1px solid #374151;
+    padding-bottom: 10px;
+    padding-right: 30px;
+    text-align: center;
+    color: #ffffff;
+}
+
+.update-option {
+    padding: 12px 15px;
+    margin: 10px 0;
+    background: #374151;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    border: 1px solid #4B5563;
+}
+
+.update-option:hover {
+    background: #4B5563;
+    transform: translateY(-2px);
+    border-color: #6B7280;
+}
+
+.update-option:active {
+    transform: translateY(0);
+}
+
+.update-option span {
+    color: #F3F4F6;
+    font-weight: 500;
+    margin-left: 10px;
+}
+
+.update-option i {
+    color: #4f46e5;
+    font-size: 1.1rem;
+}
+
+/* Ausgegraute Update-Option */
+.update-option.disabled {
+    background: #2a313c;
+    color: #6b7280;
+    cursor: not-allowed;
+    opacity: 0.6;
+    border-color: #374151;
+}
+
+.update-option.disabled:hover {
+    transform: none;
+    background: #2a313c;
+    border-color: #374151;
+}
+
+.update-option.disabled span {
+    color: #9ca3af;
+}
+
+.update-option.disabled i {
+    color: #6b7280;
+}
+
+.update-error-message {
+    background-color: rgba(220, 38, 38, 0.2);
+    color: #f87171;
+    padding: 12px;
+    border-radius: 4px;
+    margin: 12px 0;
+    font-size: 0.9rem;
+    text-align: center;
+    border-left: 3px solid #ef4444;
+}
+
+.version-info {
+    background-color: #111827;
+    border: 1px solid #374151;
+    border-radius: 5px;
+    padding: 12px;
+    margin-bottom: 15px;
+    color: #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.version-info strong {
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.status-message {
+    background-color: rgba(5, 150, 105, 0.1);
+    color: #10b981;
+    padding: 12px;
+    border-radius: 4px;
+    margin: 12px 0;
+    font-size: 0.9rem;
+    text-align: center;
+    border-left: 3px solid #10b981;
+}
+
+.update-available-message {
+    background-color: rgba(79, 70, 229, 0.1);
+    color: #818cf8;
+    padding: 12px;
+    border-radius: 4px;
+    margin: 12px 0;
+    font-size: 0.9rem;
+    text-align: center;
+    border-left: 3px solid #4f46e5;
+}
+
+.update-status-message {
+    background-color: #374151;
+    color: #e5e7eb;
+    padding: 12px;
+    border-radius: 4px;
+    margin: 12px 0;
+    font-size: 0.9rem;
+    text-align: center;
+    border-left: 3px solid #6b7280;
+}
+
+/* Update Status Indikatoren */
+.update-status-indicator {
+    margin-top: 10px;
+    padding: 8px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.update-status-indicator.update-available {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.update-status-indicator.no-update {
+    background-color: #e2e3e5;
+    color: #383d41;
+    border: 1px solid #d6d8db;
+}
+
+.update-status-indicator.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.error-details {
+    font-size: 0.9em;
+    margin-top: 8px;
+    padding: 5px;
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+    font-style: italic;
+}
+
+.update-retry-btn {
+    display: block;
+    margin: 10px auto;
+    padding: 8px 15px;
+    background-color: #4f46e5;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.update-retry-btn:hover {
+    background-color: #4338ca;
+}
+
+.update-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeInOverlay 0.3s ease-out;
+}
+
+@keyframes fadeInOverlay {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 } 

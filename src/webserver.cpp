@@ -4,6 +4,8 @@
 #include <WiFiManager.h>
 #include <ESP8266WiFi.h>
 #include <LittleFS.h>
+#include <ESP8266HTTPClient.h>
+#include <ESP8266httpUpdate.h>
 
 WebInterface::WebInterface(ClockControl& clockControl)
     : server(80)
@@ -41,18 +43,17 @@ void WebInterface::begin() {
         Serial.println("Keine gültige MQTT-Konfiguration gefunden");
     }
     
-    // API-Routen zuerst registrieren
-    server.on("/api/status", HTTP_OPTIONS, [this]() {
-        Serial.println("OPTIONS-Anfrage für /api/status");
-        sendCORSHeaders();
-        server.send(200, "text/plain", "");
+    // HTTP Update Server initialisieren (für OTA Updates)
+    httpUpdater.setup(&server);
+    
+    // CORS für Preflight-Requests
+    server.on("/api", HTTP_OPTIONS, [this]() {
+        this->sendCORSHeaders();
+        this->server.send(204);
     });
     
-    server.on("/api/status", HTTP_GET, [this]() {
-        Serial.println("GET-Anfrage für /api/status");
-        handleGetStatus();
-    });
-    
+    // API-Routen
+    server.on("/api/status", HTTP_GET, std::bind(&WebInterface::handleGetStatus, this));
     server.on("/api/setTime", HTTP_POST, [this]() {
         Serial.println("POST-Anfrage für /api/setTime");
         handleSetTime();
@@ -100,9 +101,6 @@ void WebInterface::begin() {
         handleResetMqtt();
     });
     
-    // Update-Endpunkte
-    httpUpdater.setup(&server);
-    
     // Firmware-Update-Seite
     server.on("/firmware", HTTP_GET, [this]() {
         Serial.println("GET-Anfrage für /firmware");
@@ -113,44 +111,83 @@ void WebInterface::begin() {
             "<style>"
             "body{font-family:sans-serif;line-height:1.5;padding:20px;max-width:800px;margin:0 auto;background:#111827;color:#f3f4f6}"
             ".container{background:#1f2937;padding:20px;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.1)}"
-            "h1{margin-top:0;color:#f3f4f6}"
-            "form{margin-top:20px}"
+            "h1,h2{margin-top:0;color:#f3f4f6}"
+            "form{margin-top:20px;margin-bottom:40px}"
             "input[type=file]{display:block;margin:10px 0;padding:10px;width:100%;box-sizing:border-box;background:#374151;color:#f3f4f6;border:1px solid #4f46e5;border-radius:4px}"
             "input[type=submit]{background:#4f46e5;color:white;padding:10px 20px;border:none;border-radius:4px;cursor:pointer}"
             "input[type=submit]:hover{background:#4338ca}"
             ".warning{color:#fbbf24;margin:20px 0;padding:10px;background:#374151;border-radius:4px}"
+            ".info{color:#22d3ee;margin:20px 0;padding:10px;background:#374151;border-radius:4px}"
+            ".back-link{display:inline-block;margin-top:20px;color:#9ca3af;text-decoration:none}"
+            ".back-link:hover{color:#f3f4f6}"
             "</style>"
             "</head><body>"
             "<div class='container'>"
-            "<h1>Firmware Update</h1>"
+            "<h1>Hollowclock Update</h1>"
+            
+            "<div class='info'>ℹ️ Aktuelle Version: " FW_VERSION "</div>"
+            
+            "<h2>1. Firmware aktualisieren</h2>"
             "<div class='warning'>⚠️ Achtung: Dies aktualisiert nur die Firmware. Das Dateisystem bleibt erhalten.</div>"
             "<form method='POST' action='/update' enctype='multipart/form-data'>"
             "<input type='file' name='update' accept='.bin'>"
             "<input type='submit' value='Firmware aktualisieren'>"
             "</form>"
+            
+            "<h2>2. Dateisystem aktualisieren</h2>"
+            "<div class='warning'>⚠️ Achtung: Dies aktualisiert nur das Dateisystem (Webinterface). Die Firmware bleibt erhalten.</div>"
+            "<form method='POST' action='/updatefs' enctype='multipart/form-data'>"
+            "<input type='file' name='update' accept='.bin'>"
+            "<input type='submit' value='Dateisystem aktualisieren'>"
+            "</form>"
+            
+            "<a href='/' class='back-link'>← Zurück zur Startseite</a>"
             "</div></body></html>");
-        server.send(200, "text/html", html);
+        this->server.send(200, "text/html", html);
     });
+    
+    // Dateisystem-Update Handler
+    server.on("/updatefs", HTTP_POST, [this]() {
+        // Hier nichts tun - die Antwort wird im zweiten Callback gesendet
+        server.sendHeader("Connection", "close");
+        server.send(200, "text/plain", (Update.hasError()) ? "Fehler" : "Erfolg");
+        delay(1000);
+        ESP.restart();
+    }, [this]() {
+        // Handler für den eigentlichen Upload
+        HTTPUpload& upload = server.upload();
+        if (upload.status == UPLOAD_FILE_START) {
+            Serial.printf("Dateisystem-Update: %s\n", upload.filename.c_str());
+            LittleFS.end(); // Dateisystem schließen
+            if (!Update.begin(upload.totalSize, U_FS)) { // Starte Update für Dateisystem
+                Update.printError(Serial);
+            }
+        } else if (upload.status == UPLOAD_FILE_WRITE) {
+            if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
+                Update.printError(Serial);
+            }
+        } else if (upload.status == UPLOAD_FILE_END) {
+            if (Update.end(true)) { // true to set the size to the current progress
+                Serial.printf("Dateisystem-Update erfolgreich: %u Bytes\n", upload.totalSize);
+            } else {
+                Update.printError(Serial);
+            }
+        }
+        yield();
+    });
+    
+    // Update API Endpunkte
+    this->server.on("/api/check-update", HTTP_GET, [this]() { this->handleCheckUpdate(); });
+    this->server.on("/api/start-update", HTTP_POST, [this]() { this->handleStartUpdate(); });
     
     // Statische Dateien NACH den API-Routen
     server.serveStatic("/", LittleFS, "/");
     
     // 404-Handler als letztes
     server.onNotFound([this]() {
-        Serial.print("Nicht gefunden: ");
-        Serial.println(server.uri());
-        
-        if (server.uri().startsWith("/api/")) {
-            Serial.println("API-Endpunkt nicht gefunden");
-            server.send(404, "application/json", "{\"error\":\"API endpoint not found\"}");
-            return;
+        if (!this->handleFileRead(server.uri())) {
+            this->handleNotFound();
         }
-        
-        if (handleFileRead(server.uri())) {
-            return;
-        }
-        
-        server.send(404, "text/plain", "File not found");
     });
     
     Serial.println("Routen registriert:");
@@ -267,7 +304,7 @@ void WebInterface::handleGetMqttConfig() {
     
     // Versuche mehrmals zu laden, mit kurzer Verzögerung
     for (int attempt = 1; attempt <= 3; attempt++) {
-        EEPROM.get(MQTT_CONFIG_ADDR, config);
+    EEPROM.get(MQTT_CONFIG_ADDR, config);
         
         // Validiere config vollständig
         if (config.valid && 
@@ -470,7 +507,7 @@ void WebInterface::handleSetMqttConfig() {
         
         // Versuche, zur ursprünglichen Konfiguration zurückzukehren
         EEPROM.put(MQTT_CONFIG_ADDR, originalConfig);
-        EEPROM.commit();
+    EEPROM.commit();
         
         server.send(500, "application/json", "{\"error\":\"Speichern im EEPROM fehlgeschlagen\"}");
         return;
@@ -489,14 +526,14 @@ void WebInterface::handleSetMqttConfig() {
     // Aktualisiere die MQTT-Verbindung nur wenn MQTT aktiviert ist
     if (homeAssistant) {
         if (config.enabled) {
-            homeAssistant->reconnect(
-                config.server,
-                config.port,
-                config.clientId,
-                config.topic,
-                config.user,
-                config.password
-            );
+        homeAssistant->reconnect(
+            config.server,
+            config.port,
+            config.clientId,
+            config.topic,
+            config.user,
+            config.password
+        );
         } else {
             // Trenne MQTT-Verbindung wenn deaktiviert
             homeAssistant->reconnect("", 0, "", "", "", "");
@@ -590,11 +627,9 @@ bool WebInterface::handleFileRead(const String& path) {
 }
 
 void WebInterface::sendCORSHeaders() {
-    Serial.println("Sende CORS-Header");
-    server.sendHeader("Access-Control-Allow-Origin", "*");
-    server.sendHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    server.sendHeader("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
-    server.sendHeader("Access-Control-Max-Age", "86400");
+    this->server.sendHeader("Access-Control-Allow-Origin", "*");
+    this->server.sendHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    this->server.sendHeader("Access-Control-Allow-Headers", "Content-Type");
 }
 
 void WebInterface::handleResetAllEEPROM() {
@@ -607,4 +642,394 @@ void WebInterface::handleResetAllEEPROM() {
     // Hier extern deklarierte Funktion aufrufen
     extern void resetAllEEPROM();
     resetAllEEPROM();
+}
+
+void WebInterface::handleCheckUpdate() {
+    sendCORSHeaders();
+    
+    // Erstelle sofort eine Antwortstruktur
+    StaticJsonDocument<512> response;
+    response["currentVersion"] = FW_VERSION;
+    response["latestVersion"] = "unbekannt";
+    response["firmwareUrl"] = "";
+    response["filesystemUrl"] = "";
+    
+    // Debug-Info ausgeben
+    Serial.println("\n========== UPDATE CHECK ==========");
+    Serial.println("Firmware-Version: " + String(FW_VERSION));
+    
+    // Repos und Dateinamen aus config.h verwenden
+    String repoOwner = GITHUB_REPO_OWNER;
+    String repoName = GITHUB_REPO_NAME;
+    String userAgent = GITHUB_USER_AGENT;
+    
+    // Debug-Informationen zur Netzwerkverbindung
+    Serial.print("WiFi verbunden: ");
+    Serial.println(WiFi.status() == WL_CONNECTED ? "Ja" : "Nein");
+    Serial.print("WiFi SSID: ");
+    Serial.println(WiFi.SSID());
+    Serial.print("WiFi IP: ");
+    Serial.println(WiFi.localIP().toString());
+    Serial.print("WiFi RSSI: ");
+    Serial.println(WiFi.RSSI());
+    
+    // Methode 1: Mit WiFiClientSecure oder normaler WiFiClient für GitHub API
+    // =========================================
+    Serial.println("Versuche primäre Methode (HTTPS)...");
+    fetchGitHubRelease(response);
+    
+    // Wenn die primäre Methode einen Fehler hatte, versuche die alternative Methode
+    if (response.containsKey("error")) {
+        Serial.println("\nPrimäre Methode fehlgeschlagen. Versuche alternative Methode...");
+        // Speichere den Fehler von Methode 1
+        String firstError = response["error"].as<String>();
+        
+        // Methode 2 (Alternativ): Direkte Methode mit mehr Fehlerbehandlung
+        // =========================================
+        directFetchGitHubRelease(response);
+        
+        // Wenn auch die zweite Methode fehlgeschlagen ist, gib beide Fehler aus
+        if (response.containsKey("error")) {
+            Serial.println("Beide Methoden fehlgeschlagen!");
+            response["error"] = "HTTPS: " + firstError + " | Alternativ: " + response["error"].as<String>();
+        }
+    }
+    
+    // Bereite die Antwort vor
+    String jsonResponse;
+    serializeJson(response, jsonResponse);
+    
+    Serial.println("\nSende Antwort an Client: " + jsonResponse);
+    Serial.println("============================\n");
+    
+    // Sende die Antwort an den Client
+    server.send(200, "application/json", jsonResponse);
+    
+    // Gebe etwas Speicher frei
+    yield();
+}
+
+// Methode 1: Mit WiFiClientSecure oder normaler WiFiClient für GitHub API
+void WebInterface::fetchGitHubRelease(JsonDocument& response) {
+    String repoOwner = GITHUB_REPO_OWNER;
+    String repoName = GITHUB_REPO_NAME;
+    String userAgent = GITHUB_USER_AGENT;
+    String url;
+    
+    #if USE_GITHUB_HTTPS
+    // HTTPS-Verbindung (Standard)
+    Serial.println("\nVerwende HTTPS für GitHub API...");
+    WiFiClientSecure client;
+    client.setInsecure();  // Zertifikate nicht prüfen
+    client.setTimeout(15000);  // 15 Sekunden Timeout
+    
+    url = "https://api.github.com/repos/" + repoOwner + "/" + repoName + "/releases/latest";
+    #else
+    // HTTP-Verbindung (für Geräte mit SSL-Problemen)
+    Serial.println("\nVerwende HTTP für GitHub API...");
+    WiFiClient client;
+    client.setTimeout(15000);  // 15 Sekunden Timeout
+    
+    // GitHub API URL - direkt oder über Proxy
+    #ifdef GITHUB_API_PROXY
+    url = "http://" + String(GITHUB_API_PROXY) + "api.github.com/repos/" + repoOwner + "/" + repoName + "/releases/latest";
+    Serial.println("Verwende API-Proxy: " + String(GITHUB_API_PROXY));
+    #else
+    url = "http://api.github.com/repos/" + repoOwner + "/" + repoName + "/releases/latest";
+    #endif
+    #endif
+    
+    Serial.println("GitHub API-URL: " + url);
+    
+    HTTPClient http;
+    http.setTimeout(15000);
+    
+    // HTTP Client initialisieren
+    bool httpBeginResult = http.begin(client, url);
+    
+    if (!httpBeginResult) {
+        Serial.println("FEHLER: HTTP Client konnte nicht initialisiert werden!");
+        response["error"] = "HTTP Client Initialisierungsfehler";
+        return;
+    }
+    
+    // Wichtig: GitHub API erfordert einen User-Agent Header
+    http.addHeader("User-Agent", userAgent);
+    Serial.println("User-Agent: " + userAgent);
+    
+    // Optional: Rate-Limiting erhöhen mit einem Token
+    #ifdef GITHUB_TOKEN
+    http.addHeader("Authorization", "token " GITHUB_TOKEN);
+    Serial.println("Verwende GitHub Token für erhöhtes Rate-Limit");
+    #endif
+    
+    // HTTP-Anfrage durchführen und messen, wie lange es dauert
+    unsigned long startTime = millis();
+    Serial.println("Sende HTTP GET-Anfrage...");
+    int httpCode = http.GET();
+    unsigned long duration = millis() - startTime;
+    
+    Serial.printf("\nHTTP Status Code: %d (Dauer: %lu ms)\n", httpCode, duration);
+    
+    if (httpCode == HTTP_CODE_OK) {
+        {  // Neuer Scope für payload und doc
+            String payload = http.getString();
+            Serial.println("Antwort erhalten. Länge: " + String(payload.length()) + " Bytes");
+            
+            {  // Innerer Scope für JSON-Verarbeitung
+                DynamicJsonDocument doc(5500);  // Reduzierte Größe mit kleinem Puffer
+                DeserializationError error = deserializeJson(doc, payload);
+                
+                if (!error) {
+                    if (doc.containsKey("tag_name")) {
+                        response["latestVersion"] = doc["tag_name"].as<const char*>();
+                        
+                        // Download-URLs direkt aus doc extrahieren
+                        if (doc.containsKey("assets") && doc["assets"].is<JsonArray>()) {
+                            for (JsonVariant asset : doc["assets"].as<JsonArray>()) {
+                                const char* name = asset["name"] | "";
+                                const char* url = asset["browser_download_url"] | "";
+                                
+                                if (strstr(name, "firmware.bin")) {
+                                    response["firmwareUrl"] = url;
+                                } else if (strstr(name, "filesystem.bin")) {
+                                    response["filesystemUrl"] = url;
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    response["error"] = F("JSON Parsing fehlgeschlagen");
+                }
+            }  // doc wird hier freigegeben
+            
+            payload = String();  // Explizite Freigabe des payload Strings
+            yield();  // Zeit für Speicherbereinigung
+        }  // payload wird hier freigegeben
+    } else {
+        String errorMsg = "HTTP Fehler: " + String(httpCode);
+        response["error"] = errorMsg;
+        Serial.println("FEHLER: " + errorMsg);
+        
+        // Bei Fehler die HTTP-Fehlermeldung und -Details ausgeben
+        if (httpCode < 0) {
+            Serial.println("ESP8266 HTTP-Fehler: " + http.errorToString(httpCode));
+            
+            // Ausführlichere Diagnose für die häufigsten Fehler
+            switch(httpCode) {
+                case HTTPC_ERROR_CONNECTION_REFUSED:
+                    Serial.println("Verbindung verweigert - Möglicherweise falsche URL oder Server nicht erreichbar");
+                    break;
+                case HTTPC_ERROR_SEND_HEADER_FAILED:
+                    Serial.println("Header-Übertragung fehlgeschlagen - Möglicherweise Verbindungsprobleme");
+                    break;
+                case HTTPC_ERROR_SEND_PAYLOAD_FAILED:
+                    Serial.println("Datenübertragung fehlgeschlagen - Möglicherweise instabile Verbindung");
+                    break;
+                case HTTPC_ERROR_NOT_CONNECTED:
+                    Serial.println("Keine Verbindung - WiFi möglicherweise getrennt");
+                    break;
+                case HTTPC_ERROR_CONNECTION_LOST:
+                    Serial.println("Verbindung verloren - Instabiles Netzwerk");
+                    break;
+                case HTTPC_ERROR_NO_STREAM:
+                    Serial.println("Kein Stream verfügbar");
+                    break;
+                case HTTPC_ERROR_NO_HTTP_SERVER:
+                    Serial.println("Kein HTTP-Server gefunden - Möglicherweise falscher Port");
+                    break;
+                case HTTPC_ERROR_TOO_LESS_RAM:
+                    Serial.println("Zu wenig Speicher verfügbar");
+                    break;
+                case HTTPC_ERROR_ENCODING:
+                    Serial.println("Transfer-Encoding-Fehler");
+                    break;
+                case HTTPC_ERROR_STREAM_WRITE:
+                    Serial.println("Stream-Schreibfehler");
+                    break;
+                case HTTPC_ERROR_READ_TIMEOUT:
+                    Serial.println("Timeout beim Lesen - Server antwortet zu langsam");
+                    break;
+                default:
+                    Serial.println("Unbekannter Fehler");
+                    break;
+            }
+            
+            // Zusätzliche Debugging-Informationen
+            Serial.println("\nVersuche alternative Verbindung als Test...");
+            WiFiClient testClient;
+            HTTPClient testHttp;
+            
+            // Versuchen, eine einfachere Webseite zu erreichen
+            if (testHttp.begin(testClient, "http://example.com")) {
+                int testCode = testHttp.GET();
+                Serial.printf("Testverbindung zu example.com über HTTP: %d\n", testCode);
+                if (testCode > 0) {
+                    Serial.println("Testverbindung erfolgreich - Problem ist spezifisch für GitHub API");
+                } else {
+                    Serial.println("Testverbindung fehlgeschlagen - Allgemeines HTTP-Problem");
+                }
+                testHttp.end();
+            } else {
+                Serial.println("Konnte Testverbindung nicht initialisieren - Möglicherweise generelles Netzwerkproblem");
+            }
+        } else {
+            // HTTP Status Codes anzeigen
+            Serial.print("HTTP Status Message: ");
+            switch(httpCode) {
+                case 401: Serial.println("Nicht autorisiert - Prüfe den Token"); break;
+                case 403: Serial.println("Zugriff verweigert - API Rate Limit überschritten?"); break;
+                case 404: Serial.println("Repository oder Release nicht gefunden"); break;
+                default: Serial.println("Unbekannter Statuscode"); break;
+            }
+        }
+    }
+    
+    http.end();
+    yield();  // Gebe dem System Zeit für Speicherbereinigung
+}
+
+// Methode 2: Alternative direkte Methode (basierend auf dem Beispielcode)
+void WebInterface::directFetchGitHubRelease(JsonDocument& response) {
+    Serial.println("\n====== ALTERNATIVE METHODE ======");
+    Serial.println("Versuche direkten Zugriff auf GitHub API...");
+    
+    String repoOwner = GITHUB_REPO_OWNER;
+    String repoName = GITHUB_REPO_NAME;
+    String userAgent = GITHUB_USER_AGENT;
+    
+    WiFiClientSecure client;
+    client.setInsecure();  // Skip certificate validation
+    client.setTimeout(15000);  // 15 Sekunden Timeout
+    
+    HTTPClient http;
+    http.setTimeout(15000);
+    
+    String url = "https://api.github.com/repos/" + repoOwner + "/" + repoName + "/releases/latest";
+    Serial.println("URL: " + url);
+    
+    http.begin(client, url);
+    http.addHeader("User-Agent", userAgent);
+    
+    #ifdef GITHUB_TOKEN
+    http.addHeader("Authorization", "token " GITHUB_TOKEN);
+    Serial.println("Verwende GitHub Token für erhöhtes Rate-Limit");
+    #endif
+    
+    Serial.println("Sende Anfrage...");
+    int httpCode = http.GET();
+    Serial.printf("HTTP-Code: %d\n", httpCode);
+    
+    if (httpCode > 0) {
+        String payload = http.getString();
+        Serial.println("Antwort erhalten, Länge: " + String(payload.length()) + " Bytes");
+        
+        if (httpCode == HTTP_CODE_OK) {
+            {  // Neuer Scope für doc
+                DynamicJsonDocument doc(8192);
+                DeserializationError error = deserializeJson(doc, payload);
+                
+                if (!error) {
+                    if (doc.containsKey("tag_name")) {
+                        const char* latestTag = doc["tag_name"];
+                        Serial.printf("Neueste Version gefunden: %s\n", latestTag);
+                        response["latestVersion"] = latestTag;
+                        
+                        // URLs für Firmware und Filesystem
+                        String tagName = latestTag;
+                        String firmwareUrl = "https://github.com/" + repoOwner + "/" + repoName + 
+                                    "/releases/download/" + tagName + "/firmware.bin";
+                        String filesystemUrl = "https://github.com/" + repoOwner + "/" + repoName + 
+                                    "/releases/download/" + tagName + "/littlefs.bin";
+                        
+                        response["firmwareUrl"] = firmwareUrl;
+                        response["filesystemUrl"] = filesystemUrl;
+                        
+                        Serial.println("Firmware URL: " + firmwareUrl);
+                        Serial.println("Filesystem URL: " + filesystemUrl);
+                    } else {
+                        Serial.println("FEHLER: Kein tag_name in der Antwort gefunden!");
+                        response["error"] = "GitHub API-Antwort enthält keinen Tag-Namen";
+                    }
+                } else {
+                    Serial.printf("JSON Parsing Fehler: %s\n", error.c_str());
+                    response["error"] = "JSON Parsing Fehler: " + String(error.c_str());
+                }
+            }  // doc wird hier automatisch freigegeben
+            
+            // Gebe den Payload-String explizit frei
+            payload = String();
+        } else {
+            Serial.printf("HTTP Fehler: %d\n", httpCode);
+            response["error"] = "HTTP Fehler: " + String(httpCode);
+        }
+    } else {
+        Serial.printf("Verbindungsfehler: %s\n", http.errorToString(httpCode).c_str());
+        response["error"] = "Verbindungsfehler: " + http.errorToString(httpCode);
+    }
+    
+    http.end();
+    yield();  // Gebe dem System Zeit für Speicherbereinigung
+    Serial.println("================================");
+}
+
+void WebInterface::handleStartUpdate() {
+    sendCORSHeaders();
+    
+    if (!server.hasArg("type") || !server.hasArg("url")) {
+        server.send(400, "application/json", "{\"error\":\"Missing type or url\"}");
+        return;
+    }
+    
+    String type = server.arg("type");
+    String url = server.arg("url");
+    
+    Serial.printf("Starte Update: Typ=%s, URL=%s\n", type.c_str(), url.c_str());
+    
+    WiFiClientSecure client;
+    client.setInsecure();
+    
+    if (type == "firmware") {
+        int ret = ESPhttpUpdate.update(client, url);
+        handleUpdateResult(ret);
+    } else if (type == "filesystem") {
+        int ret = ESPhttpUpdate.updateFS(client, url);
+        handleUpdateResult(ret);
+    } else {
+        server.send(400, "application/json", "{\"error\":\"Invalid update type\"}");
+    }
+}
+
+void WebInterface::handleUpdateResult(int result) {
+    switch (result) {
+        case HTTP_UPDATE_FAILED:
+            Serial.printf("HTTP_UPDATE_FAILED Error (%d): %s\n", 
+                ESPhttpUpdate.getLastError(),
+                ESPhttpUpdate.getLastErrorString().c_str());
+            server.send(500, "application/json", 
+                "{\"error\":\"Update failed: " + ESPhttpUpdate.getLastErrorString() + "\"}");
+            break;
+            
+        case HTTP_UPDATE_NO_UPDATES:
+            Serial.println("HTTP_UPDATE_NO_UPDATES");
+            server.send(200, "application/json", "{\"status\":\"No update needed\"}");
+            break;
+            
+        case HTTP_UPDATE_OK:
+            Serial.println("HTTP_UPDATE_OK");
+            server.send(200, "application/json", "{\"status\":\"Update successful\"}");
+            delay(1000); // Warte kurz, damit die Antwort gesendet werden kann
+            ESP.restart();
+            break;
+    }
+}
+
+void WebInterface::handleNotFound() {
+    this->sendCORSHeaders();
+    
+    if (this->server.uri().startsWith("/api/")) {
+        this->server.send(404, "application/json", "{\"error\":\"API endpoint not found\"}");
+    } else {
+        this->server.send(404, "text/plain", "File not found");
+    }
 } 

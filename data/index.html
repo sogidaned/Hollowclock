@@ -6,6 +6,26 @@
     <title>Hollowclock</title>
     <link rel="stylesheet" href="/style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕓</text></svg>">
+    <script>
+        // Firmware-Version vom Server abrufen und global verfügbar machen
+        window.FW_VERSION = "<?VERSION?>";
+        
+        // Beim Laden der Seite Version aus dem Status-Endpunkt abrufen
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('/api/status');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.version) {
+                        window.FW_VERSION = data.version;
+                        console.log("Firmware-Version:", window.FW_VERSION);
+                    }
+                }
+            } catch (error) {
+                console.error("Fehler beim Abrufen der Firmware-Version:", error);
+            }
+        });
+    </script>
 </head>
 <body class="dark-mode">
     <div class="container">
@@ -182,6 +202,17 @@
         
         <div class="footer">
             <p><span data-i18n="footer">Hollowclock v1.0 - </span><a href="http://hollowclock.local">hollowclock.local</a></p>
+        </div>
+    </div>
+
+    <!-- Update-Dialog -->
+    <div id="update-dialog" class="update-overlay" style="display: none;">
+        <div class="update-menu">
+            <button class="close-button" id="close-update-dialog">×</button>
+            <h3 data-i18n="firmware_update">Firmware-Update</h3>
+            <div id="update-content">
+                <!-- Hier wird der Update-Status dynamisch eingefügt -->
+            </div>
         </div>
     </div>
 

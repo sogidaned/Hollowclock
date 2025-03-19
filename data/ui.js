@@ -6,6 +6,8 @@ class UI {
         this.hourWheel = null;
         this.minuteWheel = null;
         this.isInitialized = false;
+        this.latestFirmwareUrl = null;
+        this.latestFilesystemUrl = null;
     }
 
     // UI initialisieren
@@ -16,6 +18,7 @@ class UI {
         try {
             await this.initTimeWheels();
             this.initMqttConfig();
+            this.setupUpdateButton();
             this.isInitialized = true;
             console.log('UI erfolgreich initialisiert');
         } catch (error) {
@@ -237,18 +240,316 @@ class UI {
         }
     }
 
-    // Firmware-Update starten
-    startUpdate() {
-        const message = LanguageManager.translate('update_message');
-        const choice = confirm(message);
+    // Setup Update Button
+    setupUpdateButton() {
+        const updateButton = document.getElementById('update-btn');
+        const updateDialog = document.getElementById('update-dialog');
+        const closeButton = document.getElementById('close-update-dialog');
         
-        if (choice) {
-            // Komplettes Update (Firmware + Filesystem)
-            window.location.href = '/update';
-        } else {
-            // Nur Firmware
-            window.location.href = '/firmware';
+        if (updateButton) {
+            updateButton.onclick = () => {
+                updateDialog.style.display = 'flex';
+                this.showManualUpdateOptions();
+                this.checkForUpdates();
+            };
         }
+        
+        if (closeButton) {
+            closeButton.onclick = () => {
+                updateDialog.style.display = 'none';
+            };
+        }
+        
+        // Schließen beim Klick außerhalb des Dialogs
+        if (updateDialog) {
+            updateDialog.onclick = (e) => {
+                if (e.target === updateDialog) {
+                    updateDialog.style.display = 'none';
+                }
+            };
+        }
+    }
+
+    // Update-Funktionalität starten (für Kompatibilität mit alten Aufrufen)
+    startUpdate() {
+        try {
+            this.showManualUpdateOptions();
+            this.checkForUpdates();
+        } catch (error) {
+            console.error('Fehler beim Aufruf des Update-Prozesses:', error);
+            alert('Fehler beim Starten des Update-Prozesses: ' + error.message);
+        }
+    }
+    
+    // Check for updates and update the menu with status
+    async checkForUpdates() {
+        const statusElement = document.getElementById('update-status');
+        if (statusElement) {
+            statusElement.innerHTML = `
+                <div class="update-status-message">
+                    ${LanguageManager.translate('checking_updates')}
+                </div>
+            `;
+        }
+        
+        try {
+            const updateInfo = await API.checkUpdate();
+            console.log('Update-Info erhalten:', updateInfo);
+            
+            // Versionsvergleich
+            const current = updateInfo.currentVersion || FW_VERSION || "1.0.0";
+            const latest = updateInfo.latestVersion || "unbekannt";
+            
+            // Update-Status bestimmen
+            const updateAvailable = this.compareVersions(latest, current) > 0;
+            
+            // Status-Objekt erstellen
+            const statusInfo = {
+                error: updateInfo.error,
+                errorDetails: updateInfo.errorDetails,
+                updateAvailable: updateAvailable,
+                firmwareUrl: updateInfo.firmwareUrl,
+                filesystemUrl: updateInfo.filesystemUrl,
+                currentVersion: current,
+                latestVersion: latest
+            };
+            
+            // Status anzeigen
+            this.updateStatusDisplay(statusInfo);
+            
+        } catch (error) {
+            console.error('Fehler bei der Update-Prüfung:', error);
+            this.updateStatusDisplay({
+                error: error.message,
+                errorDetails: 'Bitte versuchen Sie es später erneut.'
+            });
+        }
+    }
+    
+    // Manuelle Update-Optionen anzeigen
+    showManualUpdateOptions() {
+        const updateDialog = document.getElementById('update-dialog');
+        const updateContent = document.getElementById('update-content');
+        
+        if (!updateContent) {
+            console.error('Update-Content Element nicht gefunden');
+            return;
+        }
+        
+        updateContent.innerHTML = `
+            <div class="update-menu">
+                <h3>${LanguageManager.translate('check_update')}</h3>
+                <div id="update-status"></div>
+                <div class="update-buttons">
+                    <div class="update-option" id="view-releases-btn" onclick="window.open('https://github.com/sogidaned/Hollowclock/releases', '_blank')">
+                        <i class="fas fa-external-link-alt"></i>
+                        <span>${LanguageManager.translate('view_releases')}</span>
+                    </div>
+                    <div class="update-option" id="manual-update-btn" onclick="window.location.href='/firmware'">
+                        <i class="fas fa-upload"></i>
+                        <span>${LanguageManager.translate('manual_update')}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        updateDialog.style.display = 'flex';
+    }
+
+    // Update-Status aktualisieren
+    updateStatusDisplay(updateInfo) {
+        const statusElement = document.getElementById('update-status');
+        if (!statusElement) return;
+
+        // Speichere die URLs für die spätere Verwendung
+        this.latestFirmwareUrl = updateInfo.firmwareUrl;
+        this.latestFilesystemUrl = updateInfo.filesystemUrl;
+
+        let content = '';
+        
+        // Version-Info anzeigen
+        content += `
+            <div class="version-info">
+                <div>${LanguageManager.translate('current_version') || 'Aktuelle Version'}: <strong>${updateInfo.currentVersion}</strong></div>
+                <div>${LanguageManager.translate('latest_version') || 'Neueste Version'}: <strong>${updateInfo.latestVersion}</strong></div>
+            </div>
+        `;
+        
+        if (updateInfo.error) {
+            content += `
+                <div class="error-message">
+                    ${updateInfo.error}
+                    ${updateInfo.errorDetails || ''}
+                </div>
+                <button id="retry-update-check" class="update-retry-btn" onclick="window.ui.checkForUpdates()">
+                    ${LanguageManager.translate('retry_update') || 'Erneut prüfen'}
+                </button>
+            `;
+        } else if (updateInfo.updateAvailable) {
+            // Prüfen, ob beide Update-URLs vorhanden sind
+            const hasValidUrls = updateInfo.firmwareUrl && updateInfo.filesystemUrl;
+            
+            content += `
+                <div class="update-available-message">
+                    ${LanguageManager.translate('update_available').split('\n')[0] || 'Update verfügbar!'}
+                </div>
+            `;
+            
+            if (hasValidUrls) {
+                content += `
+                    <div class="update-option" onclick="window.ui.startAutoUpdate('${updateInfo.firmwareUrl}', '${updateInfo.filesystemUrl}')">
+                        <i class="fas fa-cloud-download-alt"></i>
+                        <span>${LanguageManager.translate('auto_update') || 'Automatische Aktualisierung'}</span>
+                    </div>
+                    <div class="update-option" onclick="window.ui.startFirmwareUpdate('${updateInfo.firmwareUrl}')">
+                        <i class="fas fa-microchip"></i>
+                        <span>${LanguageManager.translate('update_firmware') || 'Firmware aktualisieren'}</span>
+                    </div>
+                    <div class="update-option" onclick="window.ui.startFilesystemUpdate('${updateInfo.filesystemUrl}')">
+                        <i class="fas fa-hdd"></i>
+                        <span>${LanguageManager.translate('update_filesystem') || 'Dateisystem aktualisieren'}</span>
+                    </div>
+                `;
+            } else {
+                content += `
+                    <div class="update-error-message">
+                        ${LanguageManager.translate('update_files_missing') || 'Update-Dateien nicht gefunden'}
+                    </div>
+                    <div class="update-option disabled">
+                        <i class="fas fa-cloud-download-alt"></i>
+                        <span>${LanguageManager.translate('auto_update') || 'Automatische Aktualisierung'}</span>
+                    </div>
+                    <div class="update-option" id="view-releases-btn" onclick="window.open('https://github.com/sogidaned/Hollowclock/releases/tag/v${updateInfo.latestVersion}', '_blank')">
+                        <i class="fas fa-external-link-alt"></i>
+                        <span>${LanguageManager.translate('view_releases') || 'Releases anzeigen'}</span>
+                    </div>
+                `;
+            }
+        } else {
+            content += `
+                <div class="status-message">
+                    ${LanguageManager.translate('no_update_available').replace('{version}', updateInfo.currentVersion) || 'Kein Update verfügbar'}
+                </div>
+            `;
+        }
+        
+        statusElement.innerHTML = content;
+    }
+
+    // Firmware Update starten
+    async startFirmwareUpdate(url) {
+        try {
+            const response = await API.startUpdate('firmware', url);
+            if (response.status === 'ok') {
+                alert(LanguageManager.translate('update_success'));
+                location.reload();
+            } else {
+                throw new Error(response.error || 'Unbekannter Fehler');
+            }
+        } catch (error) {
+            console.error('Firmware Update Fehler:', error);
+            alert(LanguageManager.translate('update_error') + ': ' + error.message);
+        }
+    }
+
+    // Filesystem Update starten
+    async startFilesystemUpdate(url) {
+        try {
+            const response = await API.startUpdate('filesystem', url);
+            if (response.status === 'ok') {
+                alert(LanguageManager.translate('update_success'));
+                location.reload();
+            } else {
+                throw new Error(response.error || 'Unbekannter Fehler');
+            }
+        } catch (error) {
+            console.error('Filesystem Update Fehler:', error);
+            alert(LanguageManager.translate('update_error') + ': ' + error.message);
+        }
+    }
+
+    // Automatisches Update starten
+    async startAutoUpdate(firmwareUrl, filesystemUrl) {
+        // Nutze übergebene URLs oder gespeicherte URLs
+        const fwUrl = firmwareUrl || this.latestFirmwareUrl;
+        const fsUrl = filesystemUrl || this.latestFilesystemUrl;
+
+        if(!confirm(LanguageManager.translate('confirm_update', 'Möchten Sie ein automatisches Update durchführen?'))) {
+            return;
+        }
+
+        try {
+            const statusElement = document.getElementById('update-status');
+            statusElement.innerHTML = `<p>${LanguageManager.translate('updating', 'Aktualisierung wird durchgeführt...')}</p>`;
+            
+            // Firmware-Update starten
+            console.log('Starte Firmware-Update...');
+            const firmwareResult = await API.startUpdate('firmware', fwUrl);
+            
+            if (firmwareResult && !firmwareResult.error) {
+                statusElement.innerHTML = `
+                    <p>✅ ${LanguageManager.translate('firmware_updated', 'Firmware erfolgreich aktualisiert!')}</p>
+                    <p>${LanguageManager.translate('updating_filesystem', 'Dateisystem wird aktualisiert...')}</p>
+                `;
+                
+                // Dateisystem-Update starten
+                console.log('Starte Dateisystem-Update...');
+                const fsResult = await API.startUpdate('filesystem', fsUrl);
+                
+                if (fsResult && !fsResult.error) {
+                    statusElement.innerHTML = `
+                        <p>✅ ${LanguageManager.translate('update_complete', 'Update abgeschlossen!')}</p>
+                        <p>${LanguageManager.translate('device_restarting', 'Gerät wird neu gestartet...')}</p>
+                    `;
+                    // Nach 5 Sekunden die Seite neu laden
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 5000);
+                } else {
+                    statusElement.innerHTML = `
+                        <p>✅ ${LanguageManager.translate('firmware_updated', 'Firmware erfolgreich aktualisiert')}</p>
+                        <p>❌ ${LanguageManager.translate('filesystem_update_failed', 'Dateisystem-Update fehlgeschlagen')}: ${fsResult ? fsResult.error : 'Unbekannter Fehler'}</p>
+                        <button class="btn" onclick="window.location.reload()">${LanguageManager.translate('retry_update', 'Erneut versuchen')}</button>
+                    `;
+                }
+            } else {
+                statusElement.innerHTML = `
+                    <p>❌ ${LanguageManager.translate('firmware_update_failed', 'Firmware-Update fehlgeschlagen')}: ${firmwareResult ? firmwareResult.error : 'Unbekannter Fehler'}</p>
+                    <button class="btn" onclick="window.location.reload()">${LanguageManager.translate('retry_update', 'Erneut versuchen')}</button>
+                `;
+            }
+        } catch (error) {
+            console.error('Fehler beim automatischen Update:', error);
+            const statusElement = document.getElementById('update-status');
+            statusElement.innerHTML = `
+                <p>❌ ${LanguageManager.translate('update_error', 'Fehler beim Update')}: ${error.message}</p>
+                <button class="btn" onclick="window.location.reload()">${LanguageManager.translate('retry_update', 'Erneut versuchen')}</button>
+            `;
+        }
+    }
+
+    // Versionen vergleichen (returns 1 if v1 > v2, -1 if v1 < v2, 0 if equal)
+    compareVersions(v1, v2) {
+        const v1parts = v1.split('.').map(Number);
+        const v2parts = v2.split('.').map(Number);
+        
+        for (let i = 0; i < v1parts.length; ++i) {
+            if (v2parts.length === i) {
+                return 1;
+            }
+            if (v1parts[i] > v2parts[i]) {
+                return 1;
+            }
+            if (v1parts[i] < v2parts[i]) {
+                return -1;
+            }
+        }
+        
+        if (v1parts.length !== v2parts.length) {
+            return -1;
+        }
+        
+        return 0;
     }
 
     // MQTT-Konfiguration speichern
@@ -256,22 +557,22 @@ class UI {
         console.log('Speichere MQTT-Konfiguration...');
         const mqttStatus = document.getElementById('mqtt-status');
         const mqttEnabled = document.getElementById('mqtt-enabled').checked;
-        let server = document.getElementById('mqtt-broker').value.trim();
-        
+            let server = document.getElementById('mqtt-broker').value.trim();
+            
         // Entferne mqtt:// falls vorhanden
-        if (server.startsWith('mqtt://')) {
-            server = server.substring(7);
-        }
-        
-        const config = {
+            if (server.startsWith('mqtt://')) {
+                server = server.substring(7);
+            }
+            
+            const config = {
             enabled: mqttEnabled,  // MQTT-Aktivierungsstatus
-            server: server,
-            port: parseInt(document.getElementById('mqtt-port').value),
-            clientId: document.getElementById('mqtt-client-id').value.trim(),
-            topic: document.getElementById('mqtt-topic').value.trim(),
-            user: document.getElementById('mqtt-username').value.trim(),
-            password: document.getElementById('mqtt-password').value
-        };
+                server: server,
+                port: parseInt(document.getElementById('mqtt-port').value),
+                clientId: document.getElementById('mqtt-client-id').value.trim(),
+                topic: document.getElementById('mqtt-topic').value.trim(),
+                user: document.getElementById('mqtt-username').value.trim(),
+                password: document.getElementById('mqtt-password').value
+            };
 
         // Validiere die Eingaben nur wenn MQTT aktiviert ist
         if (mqttEnabled) {
@@ -279,27 +580,27 @@ class UI {
                 alert(LanguageManager.translate('mqtt_broker_empty'));
                 return;
             }
-    
+
             if (isNaN(config.port) || config.port < 1 || config.port > 65535) {
                 alert(LanguageManager.translate('mqtt_port_invalid'));
                 return;
             }
-    
+
             if (!config.clientId) {
                 alert(LanguageManager.translate('mqtt_client_empty'));
                 return;
             }
-    
+
             if (!config.topic) {
                 alert(LanguageManager.translate('mqtt_topic_empty'));
                 return;
             }
-        }
+            }
 
-        try {
-            await API.setMqttConfig(config);
+            try {
+                await API.setMqttConfig(config);
             mqttStatus.textContent = LanguageManager.translate('mqtt_config_saved');
-            mqttStatus.className = 'status-indicator success';
+                mqttStatus.className = 'status-indicator success';
             
             // Aktualisiere Status nach kurzer Verzögerung
             setTimeout(async () => {
@@ -452,4 +753,8 @@ class UI {
     }
 }
 
-export default new UI(); 
+// UI-Instanz erstellen und global verfügbar machen
+const ui = new UI();
+window.ui = ui; // Global verfügbar machen
+
+export default ui; 
