@@ -33,7 +33,7 @@ Connect the ULN2003 stepper motor driver as follows:
 - IN4 -> D5
 
 ![Wiring Diagram for Hollowclock](https://raw.githubusercontent.com/sogidaned/Hollowclock/main/docs/wiring_diagram.png)
-*Verkabelungsdiagramm: Wemos D1 Mini mit ULN2003 Treiber und 28BYJ-48 Schrittmotor*
+*Wiring diagram: Wemos D1 Mini with ULN2003 driver and 28BYJ-48 stepper motor*
 
 ## Usage
 
