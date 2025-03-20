@@ -65,6 +65,14 @@
       margin: 20px 0;
       border-radius: 4px;
     }
+    .important-note {
+      background-color: #ffe1e6;
+      padding: 15px;
+      border-left: 4px solid #ef4444;
+      margin: 20px 0;
+      border-radius: 4px;
+      font-weight: 500;
+    }
   </style>
   <script type="module" src="https://unpkg.com/esp-web-tools@9.0.4/dist/web/install-button.js?module"></script>
 </head>
@@ -73,6 +81,10 @@
   
   <div class="container">
     <p>With this tool you can load the firmware directly onto your Wemos D1 Mini without installing PlatformIO or the Arduino IDE.</p>
+    
+    <div class="important-note">
+      <strong>Important:</strong> After installation, it may take up to 5 minutes for the WiFi hotspot to start! Please be patient.
+    </div>
     
     <div class="instructions">
       <h3>Instructions:</h3>
@@ -95,7 +107,6 @@
       <p>After installation, the clock will <strong>immediately</strong> create a WiFi access point named "Hollowclock-XXXXXX" with password "12345678".</p>
       <p>Connect to this network, and a configuration portal will automatically open. If it doesn't open automatically, you can access it at <strong>http://192.168.4.1</strong></p>
       <p>There you can select your WiFi network and the clock will connect to your home network.</p>
-      <p><strong>Tip:</strong> After installation, it may take up to 5 minutes for the hotspot to start!</p>
     </div>
   </div>
   
