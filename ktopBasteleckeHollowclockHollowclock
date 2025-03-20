@@ -1,0 +1,18 @@
+[33mcommit 4be3a95a889ac11d719898c5f42f320ff7d784cc[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;33mtag: [m[1;33mv1.1.0[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: sogidaned <Sogidaned@gmail.com>
+Date:   Thu Mar 20 21:22:59 2025 +0100
+
+    Aktualisiere README mit neuen Anweisungen für Firmware-Updates und füge eine deutsche Version hinzu. Entferne die automatische Update-Logik aus der API und passe die Benutzeroberfläche an, um die manuelle Update-Seite zu verwenden. Aktualisiere die Firmware-Version auf 1.1.0 und verbessere die Fehlerbehandlung im Code.
+
+ README.md             | 166 [32m+++++++++++++++++[m[31m-[m
+ data/api.js           | 148 [32m++[m[31m--------------[m
+ data/index.html       |   2 [32m+[m[31m-[m
+ data/translations.js  |  77 [32m++++++++[m[31m-[m
+ data/ui.js            | 331 [32m++[m[31m---------------------------------[m
+ src/config.h          |  16 [32m+[m[31m-[m
+ src/homeassistant.cpp |   2 [32m+[m[31m-[m
+ src/main.cpp          |   5 [32m+[m[31m-[m
+ src/webserver.cpp     | 470 [32m+++[m[31m-----------------------------------------------[m
+ src/webserver.h       |   9 [31m-[m
+ web/manifest.json     |   2 [32m+[m[31m-[m
+ 11 files changed, 295 insertions(+), 933 deletions(-)
