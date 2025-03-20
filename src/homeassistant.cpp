@@ -295,7 +295,7 @@ void HomeAssistant::publishState() {
     int currentMinute = minute();
     
     // Zeit als formatierter String mit führenden Nullen
-    char timeStr[6];
+    char timeStr[7]; // 5 Zeichen für "HH:MM" + 1 für Null-Terminator ('\0')
     sprintf(timeStr, "%02d:%02d", currentHour, currentMinute);
     doc["time"] = timeStr;
     

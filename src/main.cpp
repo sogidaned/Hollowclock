@@ -6,7 +6,6 @@
 #include <EEPROM.h>
 #include <ESP8266WebServer.h>
 #include <WiFiManager.h>
-#include <ESP8266HTTPUpdateServer.h>
 #include <DNSServer.h>
 #include <ESP8266mDNS.h>
 #include "clockcontrol.h"
@@ -38,7 +37,6 @@ void saveMQTTConfig();
 
 // Globale Objekte
 ESP8266WebServer server(80);
-ESP8266HTTPUpdateServer httpUpdater;
 WiFiManager wifiManager;
 
 // Hauptobjekte
@@ -120,8 +118,6 @@ void setup() {
     Serial.print("  ");
     Serial.println(dir.fileSize());
   }
-  
-  httpUpdater.setup(&server);
   
   // MQTT/Home Assistant Setup
   setupMQTT();
@@ -277,6 +273,7 @@ void setupWiFi() {
   
   // Prüfen, ob bereits WiFi-Credentials vorhanden sind
   WiFiCredentials credentials;
+  memset(&credentials, 0, sizeof(WiFiCredentials)); // Struktur mit 0 initialisieren
   EEPROM.get(WIFI_CREDENTIALS_ADDR, credentials);
   
   // Beim ersten Start (nach Flashen) direkt in den AP-Modus wechseln

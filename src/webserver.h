@@ -38,17 +38,8 @@ private:
     void handleGetMqttStatus();
     void handleResetMqtt();
 
-    // Update Handler
-    void handleCheckUpdate();
-    void handleStartUpdate();
-    void handleUpdateResult(int result);
-
     // Hilfsfunktionen
     String getContentType(const String& path);
     bool handleFileRead(const String& path);
     void sendCORSHeaders();
-
-    // Neue Methoden für GitHub API Zugriff
-    void fetchGitHubRelease(JsonDocument& response);
-    void directFetchGitHubRelease(JsonDocument& response);
 };

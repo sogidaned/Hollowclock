@@ -45,6 +45,7 @@ const translations = {
         'save_mqtt': 'MQTT-Einstellungen speichern',
         'reset_mqtt': 'MQTT zurücksetzen',
         'save_settings': 'Einstellungen speichern',
+        'github_releases': 'GitHub Releases',
         
         // WLAN-Signal
         'very_good': 'Sehr gut',
@@ -113,6 +114,28 @@ const translations = {
         'retry_update': 'Erneut versuchen',
         'update_files_missing': 'Update-Dateien nicht gefunden. Bitte besuchen Sie die Releases-Seite für einen manuellen Download.',
         'update_success': 'Update erfolgreich! Das Gerät wird neu gestartet.',
+        
+        // Update-Dialog
+        'update-available': 'Update verfügbar',
+        'update-not-available': 'Kein Update verfügbar',
+        'update-version': 'Version',
+        'update-current-version': 'Aktuelle Version',
+        'update-latest-version': 'Neueste Version',
+        'update-auto-button': 'Automatisch aktualisieren',
+        'update-manual-button': 'Manuell aktualisieren',
+        'update-close-button': 'Schließen',
+        'update-checking': 'Prüfe auf Updates...',
+        'update-confirm': 'Möchten Sie ein automatisches Update durchführen? Das Gerät wird während des Updates neu gestartet.',
+        'update-error-no-urls': 'Update-URLs nicht verfügbar. Bitte versuchen Sie es später erneut.',
+        'update-firmware-progress': 'Firmware wird aktualisiert. Bitte warten Sie...',
+        'update-filesystem-progress': 'Dateisystem wird aktualisiert. Bitte warten Sie...',
+        'update-success': 'Update erfolgreich abgeschlossen!',
+        'update-reloading': 'Die Seite wird in Kürze neu geladen...',
+        'update-failed': 'Update fehlgeschlagen',
+        'update-retry-text': 'Möchten Sie es erneut versuchen?',
+        'update-retry-button': 'Erneut versuchen',
+        'update-firmware-error': 'Firmware-Update-Fehler',
+        'update-filesystem-error': 'Dateisystem-Update-Fehler',
     },
     'en': {
         // General texts
@@ -159,6 +182,7 @@ const translations = {
         'save_mqtt': 'Save MQTT Settings',
         'reset_mqtt': 'Reset MQTT',
         'save_settings': 'Save Settings',
+        'github_releases': 'GitHub Releases',
         
         // WiFi Signal
         'very_good': 'Very Good',
@@ -227,11 +251,33 @@ const translations = {
         'retry_update': 'Retry',
         'update_files_missing': 'Update files not found. Please visit the releases page to download manually.',
         'update_success': 'Update successful! The device will restart.',
+        
+        // Update-Dialog
+        'update-available': 'Update available',
+        'update-not-available': 'No update available',
+        'update-version': 'Version',
+        'update-current-version': 'Current version',
+        'update-latest-version': 'Latest version',
+        'update-auto-button': 'Update automatically',
+        'update-manual-button': 'Update manually',
+        'update-close-button': 'Close',
+        'update-checking': 'Checking for updates...',
+        'update-confirm': 'Do you want to perform an automatic update? The device will restart during the update.',
+        'update-error-no-urls': 'Update URLs not available. Please try again later.',
+        'update-firmware-progress': 'Updating firmware. Please wait...',
+        'update-filesystem-progress': 'Updating filesystem. Please wait...',
+        'update-success': 'Update successfully completed!',
+        'update-reloading': 'The page will reload shortly...',
+        'update-failed': 'Update failed',
+        'update-retry-text': 'Would you like to try again?',
+        'update-retry-button': 'Try again',
+        'update-firmware-error': 'Firmware update error',
+        'update-filesystem-error': 'Filesystem update error',
     },
     'by': {
         // Allgemeine Texte
         'title': 'Hoiglock',
-        'subtitle': 'Pfiffige Steiarung füa Durchschaug-Uhr',
+        'subtitle': 'A pfiffige Steiarung für a Durchschaug-Uhr',
         
         // Sektionen
         'current_time': 'Aktuelle Zeid',
@@ -273,6 +319,7 @@ const translations = {
         'save_mqtt': 'Eistellunga speichan',
         'reset_mqtt': 'MQTT zruggsetzn',
         'save_settings': 'Eistellunga speichan',
+        'github_releases': 'GitHub Releases',
         
         // WLAN-Signal
         'very_good': 'Subba',
@@ -321,7 +368,7 @@ const translations = {
         'firmware_update_failed': 'Updaten hot ned funktioniert',
         'filesystem_update_failed': 'Webseitn-Update hot ned funktioniert',
         'update_check_error': 'Konnt ned schaun ob\'s wos Neis gibt',
-        'update_check_error_confirm': 'Ka Verbindung zum GitHub. Mogst du s\'manuelle Update sengn?',
+        'update_check_error_confirm': 'Koa Verbindung zum GitHub. Mogst du s\'manuelle Update sengn?',
         'view_releases': 'Releases oschaugn',
         'no_update_available': 'Koa Update verfügbar. Du host scho die neieste Version ({version}).',
         'update_available': 'Es gibt wos Neis!\n\nJetzige Version: {current}\nNeie Version: {latest}\n\nWuist des gleich installiern?',
@@ -334,18 +381,40 @@ const translations = {
         'manual_update_options': 'Manuelles Update',
         
         // Update translations
-        'current_version': 'Aktuäi Version',
+        'current_version': 'Aktuäe Version',
         'latest_version': 'Neieste Version',
         'update_firmware': 'Firmware updaten',
         'update_filesystem': 'Dateisystem updaten',
         'retry_update': 'Nomoi probiern',
         'update_files_missing': 'Update-Datein ned gfundn. Bitte schau auf da Releases-Seitn für an manuelln Download.',
         'update_success': "Update fertig! S'Gerät startet nei.",
+        
+        // Update-Dialog
+        'update-available': 'Update verfügbar',
+        'update-not-available': 'Kein Update verfügbar',
+        'update-version': 'Version',
+        'update-current-version': 'Aktuelle Version',
+        'update-latest-version': 'Neueste Version',
+        'update-auto-button': 'Automatisch aktualisieren',
+        'update-manual-button': 'Manuell aktualisieren',
+        'update-close-button': 'Schließen',
+        'update-checking': 'Prüfe auf Updates...',
+        'update-confirm': 'Möchten Sie ein automatisches Update durchführen? Das Gerät wird während des Updates neu gestartet.',
+        'update-error-no-urls': 'Update-URLs nicht verfügbar. Bitte versuchen Sie es später erneut.',
+        'update-firmware-progress': 'Updating firmware. Please wait...',
+        'update-filesystem-progress': 'Updating filesystem. Please wait...',
+        'update-success': 'Update erfolgreich abgeschlossen!',
+        'update-reloading': 'Die Seite wird in Kürze neu geladen...',
+        'update-failed': 'Update fehlgeschlagen',
+        'update-retry-text': 'Möchten Sie es erneut versuchen?',
+        'update-retry-button': 'Erneut versuchen',
+        'update-firmware-error': 'Firmware-Update-Fehler',
+        'update-filesystem-error': 'Dateisystem-Update-Fehler',
     },
     'bar': {
         // ... existing code ...
         'update_check_error': 'Konnt ned schaun ob\'s wos Neis gibt',
-        'update_check_error_confirm': 'Ka Verbindung zum GitHub. Mogst du s\'manuelle Update sengn?',
+        'update_check_error_confirm': 'Koa Verbindung zum GitHub. Mogst du s\'manuelle Update sengn?',
         'view_releases': 'GitHub Releases oschaun',
         // ... existing code ...
     }
