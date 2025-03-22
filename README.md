@@ -14,11 +14,25 @@ The easiest way to install the firmware:
 
 *Note: This installer uses WebUSB and requires Chrome, Edge, or Opera browser. Firefox is not supported.*
 
+### Installation via PlatformIO (for developers)
+If you prefer to build and install the firmware yourself:
+
+1. Clone this repository: `git clone https://github.com/sogidaned/Hollowclock.git`
+2. Install [PlatformIO](https://platformio.org/) (as a VS Code extension or CLI)
+3. Connect your Wemos D1 Mini via USB
+4. Build and upload the firmware:
+   ```
+   cd Hollowclock
+   pio run -t upload    # Upload firmware
+   pio run -t uploadfs  # Upload filesystem
+   ```
+5. The device will restart automatically after installation
+
 ## First Setup
 
 1. After the first start, the clock creates a WiFi access point named "Hollowclock-XXXXXX"
 2. Connect to this network (password: 12345678)
-3. A configuration portal will open automatically (if not, open http://192.168.4.1)
+3. Open the configuration portal manually by navigating to http://192.168.4.1 in your browser
 4. Select your WiFi network and enter the password
 5. The clock will restart and connect to your WiFi
 
@@ -166,11 +180,25 @@ Der einfachste Weg, die Firmware zu installieren:
 
 *Hinweis: Dieser Installer nutzt WebUSB und benötigt Chrome, Edge oder Opera. Firefox wird nicht unterstützt.*
 
+### Installation über PlatformIO (für Entwickler)
+Wenn du die Firmware selbst bauen und installieren möchtest:
+
+1. Klone dieses Repository: `git clone https://github.com/sogidaned/Hollowclock.git`
+2. Installiere [PlatformIO](https://platformio.org/) (als VS Code Erweiterung oder CLI)
+3. Verbinde deinen Wemos D1 Mini per USB
+4. Baue und lade die Firmware hoch:
+   ```
+   cd Hollowclock
+   pio run -t upload    # Firmware hochladen
+   pio run -t uploadfs  # Dateisystem hochladen
+   ```
+5. Das Gerät startet nach der Installation automatisch neu
+
 ## Erste Einrichtung
 
 1. Nach dem ersten Start erzeugt die Uhr einen WLAN-Zugangspunkt mit dem Namen "Hollowclock-XXXXXX"
 2. Verbinde dich mit diesem Netzwerk (Passwort: 12345678)
-3. Ein Konfigurationsportal öffnet sich automatisch (falls nicht, öffne http://192.168.4.1)
+3. Öffne das Konfigurationsportal manuell, indem du http://192.168.4.1 in deinem Browser aufrufst
 4. Wähle dein WLAN-Netzwerk aus und gib das Passwort ein
 5. Die Uhr startet neu und verbindet sich mit deinem WLAN
 

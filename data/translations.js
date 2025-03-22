@@ -13,6 +13,7 @@ const translations = {
         
         'calibrate': 'Position kalibrieren',
         'calibrate_desc': 'Stellen Sie die aktuelle Zeit der Uhr hier ein:',
+        'note_prefix': 'Hinweis:',
         'calibrate_note': 'Bei einem 12-Uhr-Übergang während der Kalibrierung wird die Weboberfläche kurzfristig pausiert, um eine Fehlkalibrierung zu verhindern. Bitte warten Sie, bis der Vorgang abgeschlossen ist.',
         'save_position': 'Position speichern',
         
@@ -150,7 +151,8 @@ const translations = {
         
         'calibrate': 'Calibrate Position',
         'calibrate_desc': 'Set the current time of the clock here:',
-        'calibrate_note': 'During a 12-hour transition in calibration, the web interface will pause briefly to prevent miscalibration. Please wait until the process is complete.',
+        'note_prefix': 'Note:',
+        'calibrate_note': 'During a 12 o\'clock transition in calibration, the web interface will pause briefly to prevent miscalibration. Please wait until the process is complete.',
         'save_position': 'Save Position',
         
         'fine_adjustment': 'Fine Adjustment',
@@ -287,6 +289,7 @@ const translations = {
         
         'calibrate': 'Uhr nei eistelln',
         'calibrate_desc': 'Stoi de Zeid von da Uhr do ei:',
+        'note_prefix': 'Obacht:',
         'calibrate_note': 'Wenn da Zeiga üba 12e rutschn muaß, geht kuaz nix am Bildschirm. Des is normal, sunst kimmt de Uhr durchananda. Wart hoid a weng.',
         'save_position': 'Speichan',
         
