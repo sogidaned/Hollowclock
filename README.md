@@ -2,6 +2,9 @@
 
 A standalone version of the Hollowclock that works without Home Assistant.
 
+![Hollowclock Front View](docs/hollowclock.jpg)
+![Hollowclock User Interface](docs/Ui-photo.png)
+
 ## Installation
 
 ### Direct Installation (recommended)
@@ -46,6 +49,10 @@ Connect the ULN2003 stepper motor driver as follows:
 
 ![Wiring Diagram for Hollowclock](https://raw.githubusercontent.com/sogidaned/Hollowclock/main/docs/wiring_diagram.png)
 *Wiring diagram: Wemos D1 Mini with ULN2003 driver and 28BYJ-48 stepper motor*
+
+### 3D Printing Files
+
+The 3D printing files for the Hollowclock can be found here: [Hollowclock 3D Models on MakerWorld](https://makerworld.com/en/models/1240801-hollowclock-max#profileId-1261247)
 
 ## Usage
 
@@ -168,6 +175,9 @@ The complete source code for this project is available on GitHub: [sogidaned/hol
 
 Eine eigenständige Version der Hollowclock, die ohne Home Assistant funktioniert.
 
+![Hollowclock Ansicht](docs/hollowclock.jpg)
+![Hollowclock Benutzeroberfläche](docs/Ui-photo.png)
+
 ## Installation
 
 ### Direkte Installation (empfohlen)
@@ -212,6 +222,10 @@ Verbinde den ULN2003 Schrittmotor-Treiber wie folgt:
 
 ![Verkabelungsplan für Hollowclock](https://raw.githubusercontent.com/sogidaned/Hollowclock/main/docs/wiring_diagram.png)
 *Verkabelungsplan: Wemos D1 Mini mit ULN2003-Treiber und 28BYJ-48 Schrittmotor*
+
+### 3D-Druckdateien
+
+Die 3D-Druckdateien für die Hollowclock findest du hier: [Hollowclock 3D-Modelle auf MakerWorld](https://makerworld.com/en/models/1240801-hollowclock-max#profileId-1261247)
 
 ## Benutzung
 
